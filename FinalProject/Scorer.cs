@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+//Class for evaluation of hands played. This takes into account Jokers, Enchantments, Hand levels, Editions...
 namespace BalatroGame
 {
     public class ChipsEvaluation
@@ -16,7 +17,7 @@ namespace BalatroGame
 
     public static partial class Scorer
     {
-        // מפה של בונוסים ומכפילים לפי HandRank (ניתן לכוונן לפי כללי Balatro המדויקים)
+        //Hand type bonus chips and mult. Upgradable using Planet cards.
         private static (int bonus, int mult) BonusAndMultiplierForRank(HandRank rank)
         {
             return rank switch
@@ -34,7 +35,7 @@ namespace BalatroGame
             };
         }
 
-        // פונקציה מרכזית שמחזירה את כל הפרטים: ChipsFromCards, BonusChips, Multiplier, תיאור וסכומים
+        //Main function that returns all necessary information.
         public static ChipsEvaluation ChipsForPlayedCardsWithBonus(List<Card> chosen)
         {
             if (chosen == null || chosen.Count == 0)
@@ -42,7 +43,7 @@ namespace BalatroGame
 
             int CardValue(Card c) => (int)c.Rank;
 
-            // מקרה של 5 קלפים: נבדוק יד מלאה בעזרת ה‑HandEvaluator
+            //In the case of 5 cards
             if (chosen.Count == 5)
             {
                 var result = HandEvaluator.EvaluateFive(chosen);
@@ -122,11 +123,11 @@ namespace BalatroGame
                 };
             }
 
-            // אם יש straight/flush חלקי (3 או 4 קלפים) — נסכם את כל הקלפים שנבחרו, בונוס/מכפיל מתונים
+            //Partial straight flush (If a joker like Shortcut is picked)
             if ((isStraightPartial && chosen.Count >= 3) || (isFlushPartial && chosen.Count >= 3))
             {
                 int sum = chosen.Sum(CardValue);
-                int bonus = 12; // דוגמה
+                int bonus = 12;
                 int mult = 2;
                 string desc = isStraightPartial ? "Partial straight" : "Partial flush";
                 return new ChipsEvaluation
@@ -137,8 +138,7 @@ namespace BalatroGame
                     Description = $"{desc}: sum of selected cards = {sum}; Bonus={bonus}; Mult={mult}"
                 };
             }
-
-            // אחרת — אין קומבינציה רלוונטית -> רק הקלף הגבוה ביותר נספר, ללא בונוס/מכפיל
+            
             int maxCard = chosen.Max(CardValue);
             return new ChipsEvaluation
             {
@@ -148,8 +148,7 @@ namespace BalatroGame
                 Description = $"No poker combination: high card only = {maxCard}"
             };
         }
-
-        // עזר: בדיקת רצף חלקי (כולל A-low) עבור 3-4 קלפים
+        
         private static bool HandEvaluatorIsStraightLike(List<Rank> ranks)
         {
             var vals = ranks.Select(r => (int)r).Distinct().OrderBy(x => x).ToList();

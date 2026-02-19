@@ -33,7 +33,7 @@ namespace BalatroGame
         private int _remainingHands;
 
         private int _totalScore = 0;
-        private int _money = 4;
+        private int _money = 400;
 
         private Blind _currentBlind;
         private bool _blindDefeated = false;
@@ -281,7 +281,7 @@ namespace BalatroGame
                 Console.WriteLine($"{_currentBlind.Name} DEFEATED");
 
                 _money += _currentBlind.Reward;
-                Console.WriteLine($"{_currentBlind.Reward} OBTAINED");
+                Console.WriteLine($"{_currentBlind.Reward}$ OBTAINED");
 
                 Console.WriteLine("Dealer reshuffeling cards...");
 
@@ -366,7 +366,7 @@ namespace BalatroGame
 
                 for (int i = 0; i < shop.Items.Count; i++)
                 {
-                    Console.WriteLine($"{i}. {shop.Items[i].Name} — ${shop.Items[i].Price}");
+                    Console.WriteLine($"{i}. {shop.Items[i].Name} [{shop.Items[i].Tier}] — ${shop.Items[i].Price}");
                 }
 
                 Console.WriteLine();
@@ -382,7 +382,11 @@ namespace BalatroGame
                     Console.WriteLine("Leaving shop...");
                     return;
                 }
-
+                if (input.Equals("J", StringComparison.OrdinalIgnoreCase))
+                {
+                    OpenJokerMenu();
+                    continue;
+                }
                 if (input.Equals("R", StringComparison.OrdinalIgnoreCase))
                 {
                     if (_money < shop.RerollCost)
@@ -390,6 +394,7 @@ namespace BalatroGame
                         Console.WriteLine("Not enough money for reroll.");
                         continue;
                     }
+                    
 
                     _money -= shop.RerollCost;
                     shop.Reroll();
@@ -513,14 +518,13 @@ namespace BalatroGame
             Console.WriteLine();
             
             foreach (var joker in _jokers)
-                joker.ApplyEffect(chosenCards);
+                joker.ApplyEffect(chosenCards, _hand.Cards);
             
             Console.WriteLine("Selected cards (after Joker effects):");
             for (int i = 0; i < chosenCards.Count; i++)
                 chosenCards[i].PrintColored(parsed[i]);
 
-
-            // חישוב צ'יפים ומכפלה
+            
             var chipsEval = Scorer.ChipsForPlayedCardsWithBonus(chosenCards);
 
             int discardsUsed = MaxDiscards - _remainingDiscards;
@@ -535,11 +539,27 @@ namespace BalatroGame
 
             int finalChips = chipsEval.TotalBeforeMultiplier + jokerBonusChips;
             int finalMult = chipsEval.Multiplier + jokerBonusMult;
+
+// Apply Baron BEFORE calculating final score
+            foreach (var joker in _jokers)
+            {
+                if (joker is Joker.Baron baron)
+                    finalMult = (int)(finalMult * baron.BonusMultiplier);
+            }
+
             int finalScore = finalChips * finalMult;
 
             Console.WriteLine();
             Console.WriteLine($"Joker bonus chips: {jokerBonusChips}");
             Console.WriteLine($"Joker bonus mult: {jokerBonusMult}");
+
+// Show Baron contribution
+            foreach (var joker in _jokers)
+            {
+                if (joker is Joker.Baron baron)
+                    Console.WriteLine($"Baron bonus: ×{baron.BonusMultiplier}");
+            }
+
             Console.WriteLine($"Final score for this hand: {finalScore}");
 
             Console.WriteLine();
@@ -587,28 +607,33 @@ namespace BalatroGame
             switch (itemName)
             {
                 case "Gros Michel":
-                    _jokers.Add(new GrosMichel());
+                    _jokers.Add(new Joker.GrosMichel());
                     Console.WriteLine("Added Gros Michel!");
+                    break;
+                
+                case "Baron":
+                    _jokers.Add(new Joker.Baron());
+                    Console.WriteLine("Added Baron!");
                     break;
 
                 case "Misprint":
-                    _jokers.Add(new Misprint());
+                    _jokers.Add(new Joker.Misprint());
                     Console.WriteLine("Added Misprint!");
                     break;
                 
 
-                case "Ride the Bus":
-                    _jokers.Add(new Mask());
-                    Console.WriteLine("Added Ride the Bus!");
+                case "Mask":
+                    _jokers.Add(new Joker.Mask());
+                    Console.WriteLine("Added Mask!");
                     break;
 
                 case "Abstract Joker":
-                    _jokers.Add(new AbstractJoker(() => _jokers.Count));
+                    _jokers.Add(new Joker.AbstractJoker(() => _jokers.Count));
                     Console.WriteLine("Added Abstract Joker!");
                     break;
 
                 case "Jolly Joker":
-                    _jokers.Add(new JollyJoker());
+                    _jokers.Add(new Joker.JollyJoker());
                     Console.WriteLine("Added Jolly Joker!");
                     break;
 

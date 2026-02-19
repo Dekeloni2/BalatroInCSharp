@@ -22,7 +22,7 @@ namespace BalatroGame
             BuildDeck();
             Shuffle();
         }
-
+        //Constructs the entire deck
         private void BuildDeck()
         {
             _cards.Clear();
@@ -30,7 +30,7 @@ namespace BalatroGame
             foreach (Rank r in Enum.GetValues(typeof(Rank)))
                 _cards.Add(new Card(s, r));
         }
-
+        //Shuffles the cards. Every run is different.
         public void Shuffle()
         {
             for (int i = _cards.Count - 1; i > 0; i--)
@@ -39,7 +39,6 @@ namespace BalatroGame
                 (_cards[i], _cards[j]) = (_cards[j], _cards[i]);
             }
         }
-
         public Card Draw()
         {
             if (_cards.Count == 0) throw new InvalidOperationException("Deck is empty!");

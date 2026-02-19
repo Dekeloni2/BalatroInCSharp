@@ -2,6 +2,7 @@
 
 namespace BalatroGame
 {
+    //Generates all cards
     public enum Suit
     {
         Spades,
@@ -46,7 +47,7 @@ namespace BalatroGame
         {
             return $"{Rank} of {Suit}";
         }
-
+        //Converts cards to symbols for better UX
         public string ToUnicode()
         {
             string suitSymbol = Suit switch
@@ -107,7 +108,7 @@ namespace BalatroGame
                 Rank.Two => "2",
                 _ => "?"
             };
-
+            //Differentiates cards by color
             ConsoleColor color = Suit switch
             {
                 Suit.Hearts => ConsoleColor.Red,
@@ -124,7 +125,7 @@ namespace BalatroGame
             Console.ResetColor();
 
             Console.WriteLine();
-            
+            //If the card has any special enchantments
             if (VisualTags.Count > 0)
             {
                 Console.Write("  [");

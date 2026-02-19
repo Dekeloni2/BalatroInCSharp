@@ -18,7 +18,7 @@ namespace BalatroGame
 
     public static class HandEvaluator
     {
-        // מקבל בדיוק 5 קלפים ומחזיר את הדירוג
+        //Gets exactly 5 cards and looks for the best possible combination 
         public static BestHandResult EvaluateFive(List<Card> five)
         {
             if (five == null || five.Count != 5) throw new ArgumentException("Need exactly 5 cards");
@@ -38,6 +38,7 @@ namespace BalatroGame
             return new BestHandResult { Rank = HandRank.HighCard, Cards = five, Kickers = ranks.ToArray() };
         }
 
+        //Considers if the hand is a straight and takes an Ace into consideration
         private static bool IsStraight(List<Rank> ranks)
         {
             var vals = ranks.Select(r => (int)r).Distinct().OrderBy(x => x).ToList();

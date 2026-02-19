@@ -12,7 +12,7 @@ namespace BalatroGame
         {
             Cards = deck.DrawMany(8);
         }
-
+        //When discard or drawing cards
         public int ReplaceSelectedIndices(List<int> indices, Deck deck)
         {
             var distinct = indices.Distinct().ToList();
@@ -40,7 +40,7 @@ namespace BalatroGame
             Cards.Clear();
         }
         
-
+        //Function to sort cards by Rank
         public void SortDescending()
         {
             Cards = Cards
@@ -48,7 +48,7 @@ namespace BalatroGame
                 .ThenByDescending(c => c.Suit)
                 .ToList();
         }
-
+        //Function to sort cards by Suit
         public void SortBySuit()
         {
             Cards = Cards
