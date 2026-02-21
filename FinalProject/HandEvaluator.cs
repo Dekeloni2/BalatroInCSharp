@@ -4,18 +4,12 @@ using System.Linq;
 
 namespace BalatroGame
 {
-    public enum HandRank
-    {
-        HighCard, Pair, TwoPair, ThreeOfKind, Straight, Flush, FullHouse, FourOfKind, StraightFlush
-    }
-
     public class BestHandResult
     {
         public HandRank Rank { get; set; }
         public List<Card> Cards { get; set; }
         public int[] Kickers { get; set; } // לשבירת שוויון
     }
-
     public static class HandEvaluator
     {
         //Gets exactly 5 cards and looks for the best possible combination 
@@ -37,7 +31,37 @@ namespace BalatroGame
             if (groups[0].Count() == 2) return new BestHandResult { Rank = HandRank.Pair, Cards = five, Kickers = new[] { (int)groups[0].Key }.Concat(ranks.Where(r => r != (int)groups[0].Key)).ToArray() };
             return new BestHandResult { Rank = HandRank.HighCard, Cards = five, Kickers = ranks.ToArray() };
         }
+        public static (int handChips, int handMult) GetHandValueFlexible(List<Card> cards)
+        {
+            // אם יש 5 קלפים — משתמשים ב‑EvaluateFive
+            if (cards.Count == 5)
+            {
+                var result = EvaluateFive(cards);
 
+                return result.Rank switch
+                {
+                    HandRank.HighCard      => (5, 0),
+                    HandRank.Pair          => (10, 1),
+                    HandRank.TwoPair       => (20, 1),
+                    HandRank.ThreeOfKind   => (30, 2),
+                    HandRank.Straight      => (30, 3),
+                    HandRank.Flush         => (35, 3),
+                    HandRank.FullHouse     => (40, 3),
+                    HandRank.FourOfKind    => (60, 6),
+                    HandRank.StraightFlush => (100, 7),
+                    _ => (0, 0)
+                };
+            }
+            
+            var groups = cards.GroupBy(c => c.Rank).Select(g => g.Count()).OrderByDescending(x => x).ToList();
+
+            if (groups[0] == 4) return (60, 6);   // Four of a Kind
+            if (groups[0] == 3) return (30, 2);   // Three of a Kind
+            if (groups[0] == 2 && groups.Count == 2) return (20, 1); // Two Pair
+            if (groups[0] == 2) return (10, 1);   // Pair
+
+            return (5, 0); // High Card
+        }
         //Considers if the hand is a straight and takes an Ace into consideration
         private static bool IsStraight(List<Rank> ranks)
         {
@@ -47,5 +71,56 @@ namespace BalatroGame
             if (vals.SequenceEqual(new List<int> {2,3,4,5,14})) return true;
             return vals.Max() - vals.Min() == 4;
         }
+        public static string GetHandNameFlexible(List<Card> cards)
+        {
+            if (cards.Count == 5)
+                return HandEvaluator.EvaluateFive(cards).Rank.ToString();
+
+            var groups = cards.GroupBy(c => c.Rank).Select(g => g.Count()).OrderByDescending(x => x).ToList();
+
+            if (groups[0] == 4) return "Four of a Kind";
+            if (groups[0] == 3) return "Three of a Kind";
+            if (groups[0] == 2 && groups.Count == 2) return "Two Pair";
+            if (groups[0] == 2) return "Pair";
+
+            return "High Card";
+        }
+        public static class HandLevelSystem
+        {
+            private static Dictionary<HandRank, int> _levels = new Dictionary<HandRank, int>();
+
+            static HandLevelSystem()
+            {
+                foreach (HandRank rank in Enum.GetValues(typeof(HandRank)))
+                    _levels[rank] = 0; // כל הידיים מתחילות ברמה 0
+            }
+
+            public static int GetLevel(HandRank rank) => _levels[rank];
+
+            public static void LevelUp(HandRank rank)
+            {
+                _levels[rank]++;
+            }
+        }
+        public static class HandLevelValues
+        {
+            public static (int chips, int mult) GetBonusForLevel(HandRank rank, int level)
+            {
+                // דוגמה — אתה יכול לשנות את הערכים איך שבא לך
+                return rank switch
+                {
+                    HandRank.Pair          => (level * 10, level * 1),
+                    HandRank.TwoPair       => (level * 12, level * 1),
+                    HandRank.ThreeOfKind   => (level * 15, level * 1),
+                    HandRank.Straight      => (level * 20, level * 1),
+                    HandRank.Flush         => (level * 22, level * 1),
+                    HandRank.FullHouse     => (level * 25, level * 2),
+                    HandRank.FourOfKind    => (level * 30, level * 2),
+                    HandRank.StraightFlush => (level * 40, level * 3),
+                    _ => (0, 0)
+                };
+            }
+        }
     }
 }
+

@@ -511,16 +511,27 @@ namespace BalatroGame
                 Console.WriteLine("Numbers must be between 0 and 7.");
                 return false;
             }
-
+            
+            
             //Chosen cards
             List<Card> chosenCards = _hand.GetCardsAtIndices(parsed);
 
             Console.WriteLine();
             
+            string handName = HandEvaluator.GetHandNameFlexible(chosenCards);
+            var (handChips, handMult) = HandEvaluator.GetHandValueFlexible(chosenCards);
+
+// הוספת בונוס רמות
+            HandRank rank = HandEvaluator.EvaluateFive(chosenCards).Rank; // רק אם 5 קלפים
+            int level = HandLevelSystem.GetLevel(rank);
+            var (levelChips, levelMult) = HandLevelValues.GetBonusForLevel(rank, level);
+
+            handChips += levelChips;
+            handMult += levelMult;
+            
             foreach (var joker in _jokers)
                 joker.ApplyEffect(chosenCards, _hand.Cards);
             
-            Console.WriteLine("Selected cards (after Joker effects):");
             for (int i = 0; i < chosenCards.Count; i++)
                 chosenCards[i].PrintColored(parsed[i]);
 
@@ -537,30 +548,24 @@ namespace BalatroGame
                 jokerBonusMult += joker.GetBonusMult(chosenCards, discardsUsed);
             }
 
-            int finalChips = chipsEval.TotalBeforeMultiplier + jokerBonusChips;
-            int finalMult = chipsEval.Multiplier + jokerBonusMult;
-
-// Apply Baron BEFORE calculating final score
-            foreach (var joker in _jokers)
-            {
-                if (joker is Joker.Baron baron)
-                    finalMult = (int)(finalMult * baron.BonusMultiplier);
-            }
+            
+            int finalChips = chipsEval.TotalBeforeMultiplier + jokerBonusChips + handChips;
+            int finalMult  = chipsEval.Multiplier + jokerBonusMult + handMult;
 
             int finalScore = finalChips * finalMult;
-
+            
+            int displayMult = chipsEval.Multiplier + handMult; // base mult + hand mult
+            
+            
             Console.WriteLine();
-            Console.WriteLine($"Joker bonus chips: {jokerBonusChips}");
-            Console.WriteLine($"Joker bonus mult: {jokerBonusMult}");
-
-// Show Baron contribution
-            foreach (var joker in _jokers)
-            {
-                if (joker is Joker.Baron baron)
-                    Console.WriteLine($"Baron bonus: ×{baron.BonusMultiplier}");
-            }
-
-            Console.WriteLine($"Final score for this hand: {finalScore}");
+            Console.WriteLine("=== Hand Breakdown ===");
+            Console.WriteLine();
+            Console.WriteLine($"Hand Value: {handChips} Chips × {displayMult} Mult");
+            Console.WriteLine($"Hand: {handName}");
+            Console.WriteLine($"Chips: {finalChips}");
+            Console.WriteLine($"Mult: {finalMult}");
+            Console.WriteLine($"Final Score: {finalScore}");
+            Console.WriteLine("======================");
 
             Console.WriteLine();
             Console.WriteLine("Confirm play? Press 'Y' to confirm, or 'F' to cancel.");
@@ -610,12 +615,17 @@ namespace BalatroGame
                     _jokers.Add(new Joker.GrosMichel());
                     Console.WriteLine("Added Gros Michel!");
                     break;
-                
-                case "Baron":
-                    _jokers.Add(new Joker.Baron());
-                    Console.WriteLine("Added Baron!");
-                    break;
 
+                case "Mad Joker":
+                    _jokers.Add(new Joker.MadJoker());
+                    Console.WriteLine("Added Mad Joker!");
+                    break;
+                
+                case "Crazy Joker":
+                    _jokers.Add(new Joker.CrazyJoker());
+                    Console.WriteLine("Added Crazy Joker!");
+                    break;
+                
                 case "Misprint":
                     _jokers.Add(new Joker.Misprint());
                     Console.WriteLine("Added Misprint!");
@@ -626,10 +636,10 @@ namespace BalatroGame
                     _jokers.Add(new Joker.Mask());
                     Console.WriteLine("Added Mask!");
                     break;
-
-                case "Abstract Joker":
-                    _jokers.Add(new Joker.AbstractJoker(() => _jokers.Count));
-                    Console.WriteLine("Added Abstract Joker!");
+                
+                case "Zany Joker":
+                    _jokers.Add(new Joker.ZanyJoker());
+                    Console.WriteLine("Added Zanny Joker!");
                     break;
 
                 case "Jolly Joker":

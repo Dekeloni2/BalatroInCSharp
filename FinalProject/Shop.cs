@@ -48,9 +48,10 @@ namespace BalatroGame
                 new ShopItem("Photograph", 4),
                 new ShopItem("Hanging Chad", 4),
                 new ShopItem("Mask", 3),
-                new ShopItem("Abstract Joker", 4),
+                new ShopItem("Zany Joker", 4),
+                new ShopItem("Mad Joker", 4),
+                new ShopItem("Crazy Joker", 4),
                 new ShopItem("Jolly Joker", 3),
-                new ShopItem("Baron", 8)
             };
             
             var filtered = allJokers
@@ -89,7 +90,6 @@ namespace BalatroGame
             {
                 JokerTier.Common => new List<Joker> { new Joker.GrosMichel(), new Joker.Misprint(), new Joker.JollyJoker()},
                 JokerTier.Uncommon => new List<Joker> {new Joker.Mask()},
-                JokerTier.Rare => new List<Joker> {new Joker.Baron()},
                 _ => new List<Joker>()
             };
 

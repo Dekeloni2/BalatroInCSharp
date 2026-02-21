@@ -125,7 +125,7 @@ namespace BalatroGame
             Console.ResetColor();
 
             Console.WriteLine();
-            //If the card has any special enchantments
+            //If the card has any special enchantment
             if (VisualTags.Count > 0)
             {
                 Console.Write("  [");

@@ -63,7 +63,7 @@ public class Joker
     {
         private Random _rng = new Random();
 
-        public Misprint() : base("Misprint", 4,  JokerTier.Common)
+        public Misprint() : base("Misprint", 4, JokerTier.Common)
         {
             Description = "Randomly gain 1-20 mult";
         }
@@ -111,48 +111,83 @@ public class Joker
         }
     }
 
-    public class AbstractJoker : Joker
+    public class ZanyJoker : Joker
     {
-        private Func<int> _getJokerCount;
-
-        public AbstractJoker(Func<int> getJokerCount)
-            : base("Abstract Joker", 4, JokerTier.Common)
+        public ZanyJoker() : base("Zanny Joker", 4, JokerTier.Common)
         {
-            Description = "Gains +3 mult per joker";
-            _getJokerCount = getJokerCount;
+            Description = "+12 Mult when hand contains Three of a Kind";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
         {
-            return _getJokerCount() * 3;
+            if (playedCards.Count != 3)
+                return 0;
+
+            bool isThreeOfAKind = playedCards
+                .All(c => c.Rank == playedCards[0].Rank);
+
+            return isThreeOfAKind ? 12 : 0;
         }
     }
-    public class Baron : Joker
+
+    public class MadJoker : Joker
     {
-        public Baron() : base("Baron", 8, JokerTier.Rare)
+        public MadJoker() : base("Mad Joker", 4, JokerTier.Common)
         {
-            Description = "Kings remaining in hand give ×1.5 multiplier.";
+            Description = "+10 Mult when hand contains Two Pair";
         }
 
-        public double BonusMultiplier { get; private set; } = 1.0;
-
-        public override void ApplyEffect(List<Card> playedCards, List<Card> fullHand)
+        public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
         {
-            var unplayed = fullHand.Except(playedCards).ToList();
-            var kings = unplayed.Where(c => c.Rank == Rank.King).ToList();
+            if (playedCards.Count != 4)
+                return 0;
 
-            if (kings.Count == 0)
-                return;
+            var groups = playedCards
+                .GroupBy(c => c.Rank)
+                .Select(g => g.Count())
+                .OrderByDescending(c => c)
+                .ToList();
 
-            foreach (var king in kings)
-                king.VisualTags.Add("×1.5 (Baron)");
+            bool isTwoPair = groups.SequenceEqual(new List<int> { 2, 2 });
 
-            BonusMultiplier = Math.Pow(1.5, kings.Count);
+            return isTwoPair ? 10 : 0;
+        }
+    }
+
+    public class CrazyJoker : Joker
+    {
+        public CrazyJoker() : base("Crazy Joker", 4, JokerTier.Common)
+        {
+            Description = "+12 Mult when hand contains Straight";
         }
 
-        public void Reset()
+        public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
         {
-            BonusMultiplier = 1.0;
+            if (playedCards.Count != 5)
+                return 0;
+
+            var ranks = playedCards
+                .Select(c => (int)c.Rank)
+                .OrderBy(r => r)
+                .ToList();
+
+            bool isStraight = true;
+            for (int i = 1; i < ranks.Count; i++)
+            {
+                if (ranks[i] != ranks[i - 1] + 1)
+                {
+                    isStraight = false;
+                    break;
+                }
+            }
+
+            bool isLowAceStraight =
+                ranks.SequenceEqual(new List<int> { 2, 3, 4, 5, 14 }); // Ace = 14
+
+            if (isStraight || isLowAceStraight)
+                return 10;
+
+            return 0;
         }
     }
 }
