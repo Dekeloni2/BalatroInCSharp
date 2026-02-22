@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#pragma warning disable CS0169, CS0649
-
+#pragma warning disable CA2263
 
 namespace BalatroGame
 {
@@ -10,10 +9,7 @@ namespace BalatroGame
     {
         private readonly List<Card> _cards = new List<Card>();
         private readonly Random _rng;
-        public List<Card> Cards
-        {
-            get { return _cards; }
-        }
+        public List<Card> Cards => _cards;
 
 
         public int Count => _cards.Count;

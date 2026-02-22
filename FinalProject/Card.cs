@@ -35,7 +35,7 @@ namespace BalatroGame
         public int BaseMultiplier { get; set; } = 1;
 
         
-        public List<string> VisualTags { get; } = new List<string>();
+        public List<string> Enchantments { get; } = new List<string>();
 
         public Card(Suit suit, Rank rank)
         {
@@ -139,11 +139,11 @@ namespace BalatroGame
 
             Console.WriteLine();
             //If the card has any special enchantment
-            if (VisualTags.Count > 0)
+            if (Enchantments.Count > 0)
             {
                 Console.Write("  [");
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write(string.Join(", ", VisualTags));
+                Console.Write(string.Join(", ", Enchantments));
                 Console.ResetColor();
                 Console.Write("]");
             }

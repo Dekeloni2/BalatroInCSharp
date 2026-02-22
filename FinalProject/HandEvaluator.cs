@@ -36,7 +36,6 @@ namespace BalatroGame
         }
         public static (int handChips, int handMult) GetHandValueFlexible(List<Card> cards)
         {
-            // אם יש 5 קלפים — משתמשים ב‑EvaluateFive
             if (cards.Count == 5)
             {
                 var result = EvaluateFive(cards);
@@ -95,7 +94,7 @@ namespace BalatroGame
             static HandLevelSystem()
             {
                 foreach (HandRank rank in Enum.GetValues(typeof(HandRank)))
-                    _levels[rank] = 0; // כל הידיים מתחילות ברמה 0
+                    _levels[rank] = 0;
             }
 
             public static int GetLevel(HandRank rank) => _levels[rank];
@@ -109,7 +108,6 @@ namespace BalatroGame
         {
             public static (int chips, int mult) GetBonusForLevel(HandRank rank, int level)
             {
-                // דוגמה — אתה יכול לשנות את הערכים איך שבא לך
                 return rank switch
                 {
                     HandRank.Pair          => (level * 10, level * 1),
@@ -119,8 +117,7 @@ namespace BalatroGame
                     HandRank.Flush         => (level * 22, level * 1),
                     HandRank.FullHouse     => (level * 25, level * 2),
                     HandRank.FourOfKind    => (level * 30, level * 2),
-                    HandRank.StraightFlush => (level * 40, level * 3),
-                    _ => (0, 0)
+                    HandRank.StraightFlush => (level * 40, level * 3)
                 };
             }
         }

@@ -1,22 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FinalProject;
 
 namespace BalatroGame
 {
-    public class ShopItem
+    public class ShopItem(string name, int price)
     {
-        public string Name { get; }
-        public int Price { get; }
-        public string Tier { get; set; }
+        public string Name { get; } = name;
+        public int Price { get; } = price;
+        public string? Tier { get; set; }
 
         public IConsumable? Consumable { get; set; }
-
-        public ShopItem(string name, int price)
-        {
-            Name = name;
-            Price = price;
-        }
     }
 
     public class Shop

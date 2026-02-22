@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using BalatroGame;
 
 #pragma warning disable CS0169, CS0649
 
-namespace BalatroGame
+namespace FinalProject
 {
     public class Blind
     {
@@ -45,7 +43,7 @@ namespace BalatroGame
 
 
         // Jokers
-        private List<Joker> _jokers = new List<Joker>();
+        private readonly List<Joker> _jokers = new List<Joker>();
         private const int MaxJokers = 5;
 
         public GameController(int? seed = null)
@@ -104,7 +102,7 @@ namespace BalatroGame
                     Console.WriteLine("- Press 'C' to view remaining cards in deck");
                     Console.WriteLine("- Press 'J' to view Jokers");
 
-                    string line = Console.ReadLine()?.Trim();
+                    string? line = Console.ReadLine()?.Trim();
 
                     if (string.IsNullOrWhiteSpace(line))
                     {
@@ -460,6 +458,7 @@ namespace BalatroGame
         {
             while (true)
             {
+                Console.Clear();
                 Console.WriteLine();
                 Console.WriteLine("=== JOKERS ===");
                 Console.WriteLine($"You have {_jokers.Count}/{MaxJokers} Jokers");
@@ -495,9 +494,7 @@ namespace BalatroGame
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== Consumable Slots ===");
                 _consumables.PrintSlots();
-                Console.WriteLine("========================");
                 Console.WriteLine();
                 Console.WriteLine("Press slot number to use it, or F to exit.");
 
@@ -647,7 +644,7 @@ namespace BalatroGame
     }
 
     foreach (var card in chosenCards)
-        card.VisualTags.Clear();
+        card.Enchantments.Clear();
 
     return false;
 }
