@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+#pragma warning disable CS0169, CS0649
+
 namespace BalatroGame
 {
     public class Blind
@@ -32,6 +34,7 @@ namespace BalatroGame
         private int _remainingDiscards;
         private int _remainingHands;
 
+        private ConsumableSlots _consumables = new ConsumableSlots(2);
         private int _totalScore = 0;
         private int _money = 400;
 
@@ -49,6 +52,7 @@ namespace BalatroGame
         {
             _deck = new Deck(seed);
             _hand = new Hand();
+            
 
             _remainingDiscards = MaxDiscards;
             _remainingHands = MaxHands;
@@ -58,8 +62,7 @@ namespace BalatroGame
             _blindIndex = 0;
             _currentBlind = _blindSequence[_blindIndex];
         }
-
-
+        
 
         public void Run()
         {
@@ -97,6 +100,7 @@ namespace BalatroGame
                     Console.WriteLine("- Press 'D' to discard cards");
                     Console.WriteLine("- Press 'S' to sort by rank");
                     Console.WriteLine("- Press 'A' to sort by suit");
+                    Console.WriteLine("- Press 'X' to look at Consumables");
                     Console.WriteLine("- Press 'C' to view remaining cards in deck");
                     Console.WriteLine("- Press 'J' to view Jokers");
 
@@ -116,7 +120,8 @@ namespace BalatroGame
                         _hand.ShowHand();
                         continue;
                     }
-
+                    
+                    
                     // SORT BY SUIT
                     if (line.Equals("A", StringComparison.OrdinalIgnoreCase))
                     {
@@ -135,9 +140,17 @@ namespace BalatroGame
 
                     if (line.Equals("C", StringComparison.OrdinalIgnoreCase))
                     {
-                        ShowDeckComposition();
+                        ShowDeck();
                         continue;
                     }
+                    
+                    //CONSUMABLES
+                    if (line.Equals("X", StringComparison.OrdinalIgnoreCase))
+                    {
+                        OpenConsumableMenu();
+                        continue;
+                    }
+                    
 
                     // DISCARD
                     if (line.Equals("D", StringComparison.OrdinalIgnoreCase))
@@ -224,7 +237,7 @@ namespace BalatroGame
             Console.WriteLine($"Cards left in deck: {_deck.Count}");
         }
         
-        private void ShowDeckComposition()
+        private void ShowDeck()
         {
             Console.WriteLine();
             Console.WriteLine("=== DECK COMPOSITION ===");
@@ -354,7 +367,8 @@ namespace BalatroGame
         //Shop system
         private void OpenShop()
         {
-            Shop shop = new Shop(_jokers);
+            
+            Shop shop = new Shop(this);
 
             while (true)
             {
@@ -371,7 +385,7 @@ namespace BalatroGame
 
                 Console.WriteLine();
                 Console.WriteLine($"R. Reroll (${shop.RerollCost})");
-                Console.WriteLine($"C. View consumables");
+                Console.WriteLine($"X. View consumables");
                 Console.WriteLine($"J. View jokers");
                 Console.WriteLine("F. Enter the next blind");
 
@@ -385,6 +399,11 @@ namespace BalatroGame
                 if (input.Equals("J", StringComparison.OrdinalIgnoreCase))
                 {
                     OpenJokerMenu();
+                    continue;
+                }
+                if (input.Equals("X", StringComparison.OrdinalIgnoreCase))
+                {
+                    OpenConsumableMenu();
                     continue;
                 }
                 if (input.Equals("R", StringComparison.OrdinalIgnoreCase))
@@ -419,15 +438,20 @@ namespace BalatroGame
 
                     _money -= item.Price;
                     Console.WriteLine($"Purchased: {item.Name}");
+                    
+                    if (item.Consumable != null)
+                    {
+                        if (_consumables.AddConsumable(item.Consumable))
+                            Console.WriteLine($"Added {item.Name} to consumable slots!");
+                        else
+                            Console.WriteLine("No space in consumable slots!");
+                    }
+                    else
+                    {
+                        AddJokerFromShop(item.Name);
+                    }
 
-                    _money -= item.Price;
-                    Console.WriteLine($"Purchased: {item.Name}");
-                    
-                    AddJokerFromShop(item.Name);
-                    
                     shop.Items.RemoveAt(index);
-                    
-                    continue;
                 }
             }
         }
@@ -466,7 +490,39 @@ namespace BalatroGame
                 Console.WriteLine("Invalid option.");
             }
         }
+        private void OpenConsumableMenu()
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("=== Consumable Slots ===");
+                _consumables.PrintSlots();
+                Console.WriteLine("========================");
+                Console.WriteLine();
+                Console.WriteLine("Press slot number to use it, or F to exit.");
 
+                string input = Console.ReadLine()?.Trim().ToUpper();
+
+                if (input == "F")
+                    return;
+
+                if (int.TryParse(input, out int slot))
+                {
+                    if (_consumables.UseSlot(slot))
+                    {
+                        Console.WriteLine("Consumable used!");
+                        Console.WriteLine("Press Enter to continue.");
+                        Console.ReadLine();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid slot or empty slot.");
+                        Console.WriteLine("Press Enter to continue.");
+                        Console.ReadLine();
+                    }
+                }
+            }
+        }
         private void ReorderJokers()
         {
             Console.WriteLine("Enter two numbers to swap (e.g. 0 4):");
@@ -497,92 +553,104 @@ namespace BalatroGame
         }
 
         private bool HandlePlayCardsFlow(List<int> parsed)
-        {
-            parsed = parsed.Distinct().ToList();
+{
+    parsed = parsed.Distinct().ToList();
 
-            if (parsed.Count < 1 || parsed.Count > 5)
-            {
-                Console.WriteLine("You must choose between 1 and 5 cards.");
-                return false;
-            }
+    if (parsed.Count < 1 || parsed.Count > 5)
+    {
+        Console.WriteLine("You must choose between 1 and 5 cards.");
+        return false;
+    }
 
-            if (parsed.Any(i => i < 0 || i > 7))
-            {
-                Console.WriteLine("Numbers must be between 0 and 7.");
-                return false;
-            }
-            
-            
-            //Chosen cards
-            List<Card> chosenCards = _hand.GetCardsAtIndices(parsed);
+    if (parsed.Any(i => i < 0 || i > 7))
+    {
+        Console.WriteLine("Numbers must be between 0 and 7.");
+        return false;
+    }
 
-            Console.WriteLine();
-            
-            string handName = HandEvaluator.GetHandNameFlexible(chosenCards);
-            var (handChips, handMult) = HandEvaluator.GetHandValueFlexible(chosenCards);
+    //Chosen cards
+    List<Card> chosenCards = _hand.GetCardsAtIndices(parsed);
 
-// הוספת בונוס רמות
-            HandRank rank = HandEvaluator.EvaluateFive(chosenCards).Rank; // רק אם 5 קלפים
-            int level = HandLevelSystem.GetLevel(rank);
-            var (levelChips, levelMult) = HandLevelValues.GetBonusForLevel(rank, level);
+    Console.WriteLine();
 
-            handChips += levelChips;
-            handMult += levelMult;
-            
-            foreach (var joker in _jokers)
-                joker.ApplyEffect(chosenCards, _hand.Cards);
-            
-            for (int i = 0; i < chosenCards.Count; i++)
-                chosenCards[i].PrintColored(parsed[i]);
+    string handName = HandEvaluator.GetHandNameFlexible(chosenCards);
+    var (handChips, handMult) = HandEvaluator.GetHandValueFlexible(chosenCards);
 
-            
-            var chipsEval = Scorer.ChipsForPlayedCardsWithBonus(chosenCards);
+ 
+    HandRank rank = HandRank.HighCard;
+    int level = 0;
+    int levelChips = 0;
+    int levelMult = 0;
 
-            int discardsUsed = MaxDiscards - _remainingDiscards;
-            int jokerBonusChips = 0;
-            int jokerBonusMult = 0;
+    if (chosenCards.Count == 5)
+    {
+        rank = HandEvaluator.EvaluateFive(chosenCards).Rank;
+        level = HandLevelSystem.GetLevel(rank);
+        (levelChips, levelMult) = HandLevelValues.GetBonusForLevel(rank, level);
 
-            foreach (var joker in _jokers)
-            {
-                jokerBonusChips += joker.GetBonusChips(chosenCards, discardsUsed);
-                jokerBonusMult += joker.GetBonusMult(chosenCards, discardsUsed);
-            }
+        handChips += levelChips;
+        handMult += levelMult;
+    }
 
-            
-            int finalChips = chipsEval.TotalBeforeMultiplier + jokerBonusChips + handChips;
-            int finalMult  = chipsEval.Multiplier + jokerBonusMult + handMult;
+    foreach (var joker in _jokers)
+        joker.ApplyEffect(chosenCards, _hand.Cards);
 
-            int finalScore = finalChips * finalMult;
-            
-            int displayMult = chipsEval.Multiplier + handMult; // base mult + hand mult
-            
-            
-            Console.WriteLine();
-            Console.WriteLine("=== Hand Breakdown ===");
-            Console.WriteLine();
-            Console.WriteLine($"Hand Value: {handChips} Chips × {displayMult} Mult");
-            Console.WriteLine($"Hand: {handName}");
-            Console.WriteLine($"Chips: {finalChips}");
-            Console.WriteLine($"Mult: {finalMult}");
-            Console.WriteLine($"Final Score: {finalScore}");
-            Console.WriteLine("======================");
+    for (int i = 0; i < chosenCards.Count; i++)
+        chosenCards[i].PrintColored(parsed[i]);
 
-            Console.WriteLine();
-            Console.WriteLine("Confirm play? Press 'Y' to confirm, or 'F' to cancel.");
+    var chipsEval = Scorer.ChipsForPlayedCardsWithBonus(chosenCards);
 
-            string confirm = Console.ReadLine()?.Trim();
+    int discardsUsed = MaxDiscards - _remainingDiscards;
+    int jokerBonusChips = 0;
+    int jokerBonusMult = 0;
 
+    foreach (var joker in _jokers)
+    {
+        jokerBonusChips += joker.GetBonusChips(chosenCards, discardsUsed);
+        jokerBonusMult += joker.GetBonusMult(chosenCards, discardsUsed);
+    }
 
-            if (confirm.Equals("Y", StringComparison.OrdinalIgnoreCase))
-            {
-                _totalScore += finalScore;
-                return true;
-            }
-            foreach (var card in chosenCards)
-                card.VisualTags.Clear();
+    double chipMultiplier = 1.0;
+    foreach (var joker in _jokers)
+        chipMultiplier *= joker.GetBonusChipMultiplier(chosenCards, discardsUsed);
 
-            return false;
-        }
+    double finalChipsDouble =
+        (chipsEval.TotalBeforeMultiplier + jokerBonusChips + handChips)
+        * chipMultiplier;
+
+    int finalChips = (int)finalChipsDouble;
+    int finalMult = chipsEval.Multiplier + jokerBonusMult + handMult;
+
+    int finalScore = finalChips * finalMult;
+
+    int displayMult = chipsEval.Multiplier + handMult;
+
+    Console.WriteLine();
+    Console.WriteLine("=== Hand Breakdown ===");
+    Console.WriteLine();
+    Console.WriteLine($"Hand Value: {handChips} Chips × {displayMult} Mult");
+    Console.WriteLine($"Hand: {handName}");
+    Console.WriteLine($"Chips: {finalChips}");
+    Console.WriteLine($"Mult: {finalMult}");
+    Console.WriteLine($"Final Score: {finalScore}");
+    Console.WriteLine("======================");
+
+    Console.WriteLine();
+    Console.WriteLine("Confirm play? Press 'Y' to confirm, or 'F' to cancel.");
+
+    string confirm = Console.ReadLine()?.Trim();
+
+    if (confirm.Equals("Y", StringComparison.OrdinalIgnoreCase))
+    {
+        _totalScore += finalScore;
+        return true;
+    }
+
+    foreach (var card in chosenCards)
+        card.VisualTags.Clear();
+
+    return false;
+}
 
 
         private List<int> ParseIndices(string input)
@@ -600,7 +668,17 @@ namespace BalatroGame
 
             return parsed.Distinct().ToList();
         }
+        
+        public bool PlayerAlreadyOwns(string itemName)
+        {
+            if (_jokers.Any(j => j.Name == itemName))
+                return true;
+            
+            if (_consumables.Slots.Any(c => c != null && c.Name == itemName))
+                return true;
 
+            return false;
+        }
         private void AddJokerFromShop(string itemName)
         {
             if (_jokers.Count >= MaxJokers)

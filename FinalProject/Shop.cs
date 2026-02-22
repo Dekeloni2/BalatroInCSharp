@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-/*After beating a blind, this shop appears.
- This shop is fully functional with no duplicates,
- rerolls, selling and buying cards, card packs and
- joker appearing by rarity.*/
+
 namespace BalatroGame
 {
     public class ShopItem
@@ -12,6 +9,8 @@ namespace BalatroGame
         public string Name { get; }
         public int Price { get; }
         public string Tier { get; set; }
+
+        public IConsumable? Consumable { get; set; }
 
         public ShopItem(string name, int price)
         {
@@ -22,15 +21,15 @@ namespace BalatroGame
 
     public class Shop
     {
-        public List<ShopItem> Items { get; private set; }
+        public List<ShopItem> Items { get; private set; } = new();
         public int RerollCost { get; private set; } = 2;
 
-        private List<Joker> _ownedJokers;
+        private GameController _game; 
         private Random _rng = new Random();
 
-        public Shop(List<Joker> ownedJokers)
+        public Shop(GameController game)
         {
-            _ownedJokers = ownedJokers;
+            _game = game;
             GenerateNewItems();
         }
 
@@ -38,41 +37,72 @@ namespace BalatroGame
         {
             GenerateNewItems();
         }
+        
+        private ShopItem GenerateJokerItem()
+        {
+            Joker j = GenerateRandomJoker();
 
+            return new ShopItem(j.Name, j.Price)
+            {
+                Tier = j.Tier.ToString(),
+                Consumable = null
+            };
+        }
+
+        // ⭐ פונקציה שמייצרת Planet Card כ‑ShopItem
+        private ShopItem GeneratePlanetItem()
+        {
+            var planets = new List<PlanetCard>
+            {
+                new PlanetCard(HandRank.Pair),
+                new PlanetCard(HandRank.TwoPair),
+                new PlanetCard(HandRank.ThreeOfKind),
+                new PlanetCard(HandRank.Straight),
+                new PlanetCard(HandRank.Flush),
+                new PlanetCard(HandRank.FullHouse),
+                new PlanetCard(HandRank.FourOfKind),
+                new PlanetCard(HandRank.StraightFlush)
+            };
+
+            var chosen = planets[_rng.Next(planets.Count)];
+
+            return new ShopItem(chosen.Name, 4)
+            {
+                Tier = "Planet",
+                Consumable = chosen
+            };
+        }
+
+        // ⭐ מונע כפילויות בחנות ובאינבנטורי של השחקן
         public void GenerateNewItems()
         {
-            var allJokers = new List<ShopItem>
-            {
-                new ShopItem("Gros Michel", 5),
-                new ShopItem("Misprint", 3),
-                new ShopItem("Photograph", 4),
-                new ShopItem("Hanging Chad", 4),
-                new ShopItem("Mask", 3),
-                new ShopItem("Zany Joker", 4),
-                new ShopItem("Mad Joker", 4),
-                new ShopItem("Crazy Joker", 4),
-                new ShopItem("Jolly Joker", 3),
-            };
-            
-            var filtered = allJokers
-                .Where(j => !_ownedJokers.Any(o => o.Name == j.Name))
-                .ToList();
-
             Items = new List<ShopItem>();
-            
-            if (filtered.Count == 0)
-                return;
-            
-            for (int i = 0; i < 3 && filtered.Count > 0; i++)
+
+            while (Items.Count < 3)
             {
-                int index = _rng.Next(filtered.Count);
-                Items.Add(filtered[index]);
-                filtered.RemoveAt(index);
+                ShopItem item;
+
+                // 50% ג'וקר, 50% פלנטה
+                if (_rng.Next(2) == 0)
+                    item = GenerateJokerItem();
+                else
+                    item = GeneratePlanetItem();
+
+                // 1. לא להציג פריט שכבר יש לשחקן
+                if (_game.PlayerAlreadyOwns(item.Name))
+                    continue;
+
+                // 2. לא להציג פריט שכבר בחנות
+                if (Items.Any(i => i.Name == item.Name))
+                    continue;
+
+                Items.Add(item);
             }
         }
+
         private JokerTier RollTier()
         {
-            int roll = _rng.Next(100); // 0–99
+            int roll = _rng.Next(100);
 
             if (roll < 70)
                 return JokerTier.Common;
@@ -82,14 +112,33 @@ namespace BalatroGame
 
             return JokerTier.Rare;
         }
+
         private Joker GenerateRandomJoker()
         {
             JokerTier tier = RollTier();
 
             List<Joker> pool = tier switch
             {
-                JokerTier.Common => new List<Joker> { new Joker.GrosMichel(), new Joker.Misprint(), new Joker.JollyJoker()},
-                JokerTier.Uncommon => new List<Joker> {new Joker.Mask()},
+                JokerTier.Common => new List<Joker>
+                {
+                    new Joker.GrosMichel(),
+                    new Joker.Misprint(),
+                    new Joker.JollyJoker()
+                },
+
+                JokerTier.Uncommon => new List<Joker>
+                {
+                    new Joker.Mask(),
+                    new Joker.MadJoker(),
+                    new Joker.CrazyJoker(),
+                    new Joker.ZanyJoker()
+                },
+
+                JokerTier.Rare => new List<Joker>
+                {
+                    new Joker.PiMan(),   // אם תרצה להוסיף Rare
+                },
+
                 _ => new List<Joker>()
             };
 
@@ -101,8 +150,8 @@ namespace BalatroGame
             return tier switch
             {
                 JokerTier.Common => ConsoleColor.White,
-                JokerTier.Uncommon => ConsoleColor.Cyan,
-                JokerTier.Rare => ConsoleColor.Magenta,
+                JokerTier.Uncommon => ConsoleColor.Green,
+                JokerTier.Rare => ConsoleColor.Red,
                 _ => ConsoleColor.Gray
             };
         }

@@ -1,4 +1,6 @@
 using BalatroGame;
+
+
 //Each joker is a separate class. This comes with their name, ability description, price and tier.
 public enum JokerTier
 {
@@ -10,7 +12,7 @@ public enum JokerTier
 public class Joker
 {
     public string Name { get; }
-    public string Description { get; protected set; }
+    public string Description { get; set; } = "";
     public int Price { get; }
     public JokerTier Tier { get; }
 
@@ -36,7 +38,10 @@ public class Joker
     {
         return 0;
     }
-
+    public virtual double GetBonusChipMultiplier(List<Card> playedCards, int discardsUsed)
+    {
+        return 1.0; 
+    }
 
     public class GrosMichel : Joker
     {
@@ -94,7 +99,56 @@ public class Joker
             return 20;
         }
     }
+    
+    public class Fibonacci : Joker
+    {
+        public Fibonacci() : base("Fibonacci", 7, JokerTier.Uncommon)
+        {
+            Description = "+8 mult for each Ace, 2, 3, 5, or 8 played.";
+        }
 
+        public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
+        {
+            int fibbonaciBonus = 0;
+
+            foreach (var card in playedCards)
+            {
+                if (card.Rank == Rank.Ace ||
+                    card.Rank == Rank.Two ||
+                    card.Rank == Rank.Three ||
+                    card.Rank == Rank.Five ||
+                    card.Rank == Rank.Eight)
+                {
+                    fibbonaciBonus += 8;
+                }
+            }
+
+            return 0;
+        }
+    }
+    public class PiMan : Joker
+    {
+        public PiMan() : base("Pi Man", 10, JokerTier.Rare)
+        {
+            Description = "Raises chips to the power of 3.14 if played hand contains Ace, 3 and 4.";
+        }
+
+        public override int GetBonusChips(List<Card> playedCards, int discardsUsed)
+        {
+            bool hasAce   = playedCards.Any(c => c.Rank == Rank.Ace);
+            bool hasThree = playedCards.Any(c => c.Rank == Rank.Three);
+            bool hasFour  = playedCards.Any(c => c.Rank == Rank.Four);
+
+            if (!(hasAce && hasThree && hasFour))
+                return 0;
+            
+            int baseChips = playedCards.Sum(c => c.ChipValue);
+            
+            double powered = Math.Pow(baseChips, 3.14);
+            
+            return (int)(powered - baseChips);
+        }
+    }
     public class JollyJoker : Joker
     {
         public JollyJoker() : base("Jolly Joker", 4, JokerTier.Common)

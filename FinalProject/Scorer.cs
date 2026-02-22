@@ -12,7 +12,7 @@ namespace BalatroGame
         public int Multiplier { get; set; }          // מכפיל סופי
         public int TotalBeforeMultiplier => ChipsFromCards + BonusChips;
         public int TotalAfterMultiplier => TotalBeforeMultiplier * Multiplier;
-        public string Description { get; set; }
+        public string Description { get; set; } = "";
     }
 
     public static partial class Scorer

@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+#pragma warning disable CS0169, CS0649
+
 namespace BalatroGame
 {
     public class BestHandResult
     {
         public HandRank Rank { get; set; }
-        public List<Card> Cards { get; set; }
-        public int[] Kickers { get; set; } // לשבירת שוויון
+        public List<Card> Cards { get; set; } = new();
+        public int[] Kickers { get; set; }
+        
     }
     public static class HandEvaluator
     {

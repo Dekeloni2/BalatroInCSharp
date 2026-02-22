@@ -42,7 +42,20 @@ namespace BalatroGame
             Suit = suit;
             Rank = rank;
         }
-
+        public int ChipValue
+        {
+            get
+            {
+                return Rank switch
+                {
+                    Rank.Ace   => 14,
+                    Rank.Jack  => 11,
+                    Rank.Queen => 12,
+                    Rank.King  => 13,
+                    _          => (int)Rank
+                };
+            }
+        }
         public override string ToString()
         {
             return $"{Rank} of {Suit}";

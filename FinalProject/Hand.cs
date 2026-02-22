@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#pragma  warning disable CS0169
+
 
 namespace BalatroGame
 {
