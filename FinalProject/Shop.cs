@@ -43,7 +43,16 @@ namespace BalatroGame
                 Consumable = null
             };
         }
+        private ShopItem GenerateTarotItem()
+        {
+            var tarot = TarotPool.All[_rng.Next(TarotPool.All.Count)];
 
+            return new ShopItem(tarot.Name, 3)
+            {
+                Tier = "Tarot",
+                Consumable = tarot
+            };
+        }
         // ⭐ פונקציה שמייצרת Planet Card כ‑ShopItem
         private ShopItem GeneratePlanetItem()
         {
@@ -77,17 +86,18 @@ namespace BalatroGame
             {
                 ShopItem item;
 
-                // 50% ג'וקר, 50% פלנטה
-                if (_rng.Next(2) == 0)
-                    item = GenerateJokerItem();
-                else
-                    item = GeneratePlanetItem();
+                int roll = _rng.Next(3);
 
-                // 1. לא להציג פריט שכבר יש לשחקן
+                if (roll == 0)
+                    item = GenerateJokerItem();
+                else if (roll == 1)
+                    item = GeneratePlanetItem();
+                else
+                    item = GenerateTarotItem();
+
                 if (_game.PlayerAlreadyOwns(item.Name))
                     continue;
 
-                // 2. לא להציג פריט שכבר בחנות
                 if (Items.Any(i => i.Name == item.Name))
                     continue;
 

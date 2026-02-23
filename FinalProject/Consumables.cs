@@ -3,10 +3,12 @@
  that the player can access.*/
 
 
+using FinalProject;
+
 public interface IConsumable
 {
     string Name { get; }
-    void Use();
+    void Use(GameController game);
 }
 
 public enum HandRank
@@ -79,6 +81,21 @@ public class ConsumableSlots
     }
     
 }
+
+public abstract class TarotCard : IConsumable
+{
+    public string Name { get; }
+    public string Description { get; }
+
+    protected TarotCard(string name, string description)
+    {
+        Name = name;
+        Description = description;
+    }
+
+    public abstract void Use(GameController game);
+}
+
 public static class HandLevelSystem
 {
     private static Dictionary<HandRank, int> _levels = new Dictionary<HandRank, int>();
