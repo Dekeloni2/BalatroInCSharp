@@ -12,7 +12,7 @@ namespace FinalProject
     public class Shop
     {
         public List<ShopItem> Items { get; private set; } = new();
-        public int RerollCost { get; private set; } = 2;
+        public int RerollCost { get; private set; } = 5;
 
         private GameController _game; 
         private Random _rng = new Random();
@@ -25,6 +25,17 @@ namespace FinalProject
 
         public void Reroll()
         {
+            Console.Clear();
+            if (_game.Money < RerollCost)
+            {
+                Console.WriteLine("Not enough money to reroll!");
+                Console.ReadLine();
+                return;
+            }
+
+            _game.Money -= RerollCost;
+            RerollCost++;
+
             GenerateNewItems();
         }
         
@@ -75,6 +86,8 @@ namespace FinalProject
                     item = GenerateJokerItem();
                 else if (roll == 1)
                     item = GeneratePlanetItem();
+                else
+                continue;
 
                 if (_game.PlayerAlreadyOwns(item.Name))
                     continue;
@@ -109,20 +122,21 @@ namespace FinalProject
                 {
                     new Joker.GrosMichel(),
                     new Joker.Misprint(),
-                    new Joker.JollyJoker()
-                },
-
-                JokerTier.Uncommon => new List<Joker>
-                {
-                    new Joker.Mask(),
+                    new Joker.JollyJoker(),
                     new Joker.MadJoker(),
                     new Joker.CrazyJoker(),
                     new Joker.ZanyJoker()
                 },
 
+                JokerTier.Uncommon => new List<Joker>
+                {
+                    new Joker.Mask(),
+                    new Joker.Fibonacci()
+                },
+
                 JokerTier.Rare => new List<Joker>
                 {
-                    new Joker.PiMan(),   // אם תרצה להוסיף Rare
+                    new Joker.PiMan(),
                 },
 
                 _ => new List<Joker>()

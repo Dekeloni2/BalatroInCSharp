@@ -1,4 +1,5 @@
 using BalatroGame;
+using FinalProject;
 
 
 //Each joker is a separate class. This comes with their name, ability description, price and tier.
@@ -13,6 +14,7 @@ public class Joker
 {
     public string Name { get; }
     public string Description { get; set; } = "";
+    public virtual string _Description { get; }
     public int Price { get; }
     public JokerTier Tier { get; }
 
@@ -63,7 +65,79 @@ public class Joker
             return _rng.Next(6) == 0;
         }
     }
+    public class EvenSteven : Joker
+    {
+        public EvenSteven() : base("Even Steven", 3)
+        {
+            Description = "+4 mult for each even-ranked card (2, 4, 6, 8, 10).";
+        }
 
+        public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
+        {
+            int bonus = 0;
+
+            foreach (var card in playedCards)
+            {
+                if (IsEven(card))
+                    bonus += 4;
+            }
+
+            return bonus;
+        }
+        private bool IsEven(Card card)
+        {
+            return card.Rank == Rank.Two ||
+                   card.Rank == Rank.Four ||
+                   card.Rank == Rank.Six ||
+                   card.Rank == Rank.Eight ||
+                   card.Rank == Rank.Ten;
+        }
+    }
+    public class OddTodd : Joker
+    {
+        public OddTodd() : base("Odd Todd", 3)
+        {
+            Description = "+31 chips for each odd-ranked card (A, 3, 5, 7, 9).";
+        }
+
+        public override int GetBonusChips(List<Card> playedCards, int discardsUsed)
+        {
+            int bonus = 0;
+
+            foreach (var card in playedCards)
+            {
+                if (IsOdd(card))
+                    bonus += 31;
+            }
+
+            return bonus;
+        }
+
+        private bool IsOdd(Card card)
+        {
+            return card.Rank == Rank.Ace ||
+                   card.Rank == Rank.Three ||
+                   card.Rank == Rank.Five ||
+                   card.Rank == Rank.Seven ||
+                   card.Rank == Rank.Nine;
+        }
+    }
+    public class MysticSummit : Joker
+    {
+        public MysticSummit() : base("Mystic Summit", 4)
+        {
+            Description = "+15 mult if you have no discards remaining.";
+        }
+
+        public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
+        {
+            // אם אין לשחקן יותר discards → תן 15 mult
+            if (GameController.Instance._remainingDiscards == 0)
+                return 15;
+
+            return 0;
+        }
+    }
     public class Misprint : Joker
     {
         private Random _rng = new Random();
@@ -124,6 +198,29 @@ public class Joker
             }
 
             return 0;
+        }
+    }
+    public class Bull : Joker
+    {
+        public Bull() : base("Bull", 5)
+        {
+            Description = ("+2 chips for each dollar you have."); // טקסט בסיסי
+        }
+
+        public override string _Description
+        {
+            get
+            {
+                int money = GameController.Instance.Money;
+                int chips = money * 2;
+                return $"+2 chips for each dollar you have. (Currently {chips})";
+            }
+        }
+
+        public override int GetBonusChips(List<Card> playedCards, int discardsUsed)
+        {
+            int money = GameController.Instance.Money;
+            return money * 2;
         }
     }
     public class PiMan : Joker

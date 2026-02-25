@@ -39,7 +39,7 @@ namespace FinalProject
         {
             return _handLevels[rank];
         }
-        
+        public static GameController Instance { get; private set; }
         public void UseConsumableSlot(int slotIndex)
         {
             _consumables.UseConsumable(slotIndex, this);
@@ -61,8 +61,8 @@ namespace FinalProject
         private const int MaxDiscards = 3;
         private const int MaxHands = 4;
 
-        private int _remainingDiscards;
-        private int _remainingHands;
+        public int _remainingDiscards;
+        public int _remainingHands;
 
         private ConsumableSlots _consumables = new ConsumableSlots(2);
         private int _totalScore;
@@ -76,7 +76,9 @@ namespace FinalProject
 
         // Jokers
         private readonly List<Joker> _jokers = new List<Joker>();
+        public List<Joker> Jokers { get; private set; } = new();
         private const int MaxJokers = 5;
+
 
         public GameController(int? seed = null)
         {
@@ -201,7 +203,7 @@ namespace FinalProject
                             continue;
                         }
 
-                        var discardIndices = ParseIndices(discardInput);
+                        var discardIndices = PraseToIndexes(discardInput);
 
                         if (discardIndices == null)
                         {
@@ -227,7 +229,7 @@ namespace FinalProject
                     }
 
                     // PLAY CARDS
-                    var playIndices = ParseIndices(line);
+                    var playIndices = PraseToIndexes(line);
                     if (playIndices != null)
                     {
                         bool confirmed = HandlePlayCardsFlow(playIndices);
@@ -311,14 +313,13 @@ namespace FinalProject
                 _ => "?"
             };
         }
-
-
-        
         
         private void CheckBlindStatus()
         {
             if (_totalScore >= _currentBlind.TargetScore)
             {
+                bool grosMichelFound = false;
+                bool grosMichelBroke = false;
                 Console.WriteLine();
                 Console.WriteLine($"{_currentBlind.Name} DEFEATED");
 
@@ -333,16 +334,33 @@ namespace FinalProject
 
                 _remainingDiscards = MaxDiscards;
                 _remainingHands = MaxHands;
+                
+                foreach (var joker in Jokers.ToList())
+                {
+                    if (joker is Joker.GrosMichel gm)
+                    {
+                        grosMichelFound = true;
 
-                //Opens the shop
+                        if (gm.ShouldBreak())
+                        {
+                            Console.WriteLine("Your Gros Michel broke!");
+                            Jokers.Remove(gm);
+                            grosMichelBroke = true;
+                        }
+                    }
+                }
+                if (grosMichelFound && !grosMichelBroke)
+                {
+                    Console.WriteLine("Your Gros Michel didn't go extinct.");
+                }
+                
                 OpenShop();
 
-                _blindDefeated = false;  
+                _blindDefeated = false;
                 _currentBlind = GetNextBlind();
                 _totalScore = 0;
                 return;
-                
-            }
+                }
 
             //Losing
             if (_remainingHands == 0)
@@ -388,7 +406,7 @@ namespace FinalProject
                 Console.WriteLine("🎉 You beat all Blinds! You win!");
                 Environment.Exit(0);
             }
-
+            
             return _blindSequence[_blindIndex];
         }
 
@@ -556,7 +574,7 @@ namespace FinalProject
 
             string line = Console.ReadLine()?.Trim();
 
-            var indices = ParseIndices(line);
+            var indices = PraseToIndexes(line);
 
 
             if (indices == null || indices.Count != 2)
@@ -579,6 +597,73 @@ namespace FinalProject
             _jokers[b] = temp;
 
             Console.WriteLine("Jokers reordered!");
+        }
+                public bool PlayerAlreadyOwns(string itemName)
+        {
+            if (_jokers.Any(j => j.Name == itemName))
+                return true;
+            
+            if (_consumables.Slots.Any(c => c != null && c.Name == itemName))
+                return true;
+
+            return false;
+        }
+        private void AddJokerFromShop(string itemName)
+        {
+            if (_jokers.Count >= MaxJokers)
+            {
+                Console.WriteLine("You already have the maximum number of Jokers.");
+                return;
+            }
+
+            switch (itemName)
+            {
+                case "Gros Michel":
+                    _jokers.Add(new Joker.GrosMichel());
+                    Console.WriteLine("Added Gros Michel!");
+                    break;
+                
+                case "Pi Man":
+                    _jokers.Add(new Joker.PiMan());
+                    Console.WriteLine("Added Pi Man!");
+                    break;
+                
+
+                case "Mad Joker":
+                    _jokers.Add(new Joker.MadJoker());
+                    Console.WriteLine("Added Mad Joker!");
+                    break;
+                
+                case "Crazy Joker":
+                    _jokers.Add(new Joker.CrazyJoker());
+                    Console.WriteLine("Added Crazy Joker!");
+                    break;
+                
+                case "Misprint":
+                    _jokers.Add(new Joker.Misprint());
+                    Console.WriteLine("Added Misprint!");
+                    break;
+                
+
+                case "Mask":
+                    _jokers.Add(new Joker.Mask());
+                    Console.WriteLine("Added Mask!");
+                    break;
+                
+                case "Zany Joker":
+                    _jokers.Add(new Joker.ZanyJoker());
+                    Console.WriteLine("Added Zanny Joker!");
+                    break;
+
+                case "Jolly Joker":
+                    _jokers.Add(new Joker.JollyJoker());
+                    Console.WriteLine("Added Jolly Joker!");
+                    break;
+
+                default:
+                    Console.WriteLine("Item purchased, but it is not a Joker.");
+                    break;
+            }
         }
         
 private bool HandlePlayCardsFlow(List<int> parsed)
@@ -679,7 +764,7 @@ private bool HandlePlayCardsFlow(List<int> parsed)
 
     return false;
 }
-private List<int>? ParseIndices(string input)
+private List<int>? PraseToIndexes(string input)
         {
             var parts = input.Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
             var parsed = new List<int>();
@@ -706,66 +791,5 @@ private List<int>? ParseIndices(string input)
             { HandRank.FourOfKind, 1 },
             { HandRank.StraightFlush, 1 }
         };
-        public bool PlayerAlreadyOwns(string itemName)
-        {
-            if (_jokers.Any(j => j.Name == itemName))
-                return true;
-            
-            if (_consumables.Slots.Any(c => c != null && c.Name == itemName))
-                return true;
-
-            return false;
-        }
-        private void AddJokerFromShop(string itemName)
-        {
-            if (_jokers.Count >= MaxJokers)
-            {
-                Console.WriteLine("You already have the maximum number of Jokers.");
-                return;
-            }
-
-            switch (itemName)
-            {
-                case "Gros Michel":
-                    _jokers.Add(new Joker.GrosMichel());
-                    Console.WriteLine("Added Gros Michel!");
-                    break;
-
-                case "Mad Joker":
-                    _jokers.Add(new Joker.MadJoker());
-                    Console.WriteLine("Added Mad Joker!");
-                    break;
-                
-                case "Crazy Joker":
-                    _jokers.Add(new Joker.CrazyJoker());
-                    Console.WriteLine("Added Crazy Joker!");
-                    break;
-                
-                case "Misprint":
-                    _jokers.Add(new Joker.Misprint());
-                    Console.WriteLine("Added Misprint!");
-                    break;
-                
-
-                case "Mask":
-                    _jokers.Add(new Joker.Mask());
-                    Console.WriteLine("Added Mask!");
-                    break;
-                
-                case "Zany Joker":
-                    _jokers.Add(new Joker.ZanyJoker());
-                    Console.WriteLine("Added Zanny Joker!");
-                    break;
-
-                case "Jolly Joker":
-                    _jokers.Add(new Joker.JollyJoker());
-                    Console.WriteLine("Added Jolly Joker!");
-                    break;
-
-                default:
-                    Console.WriteLine("Item purchased, but it is not a Joker.");
-                    break;
-            }
-        }
     }
 }
