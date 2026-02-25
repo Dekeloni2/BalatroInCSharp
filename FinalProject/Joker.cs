@@ -47,7 +47,7 @@ public class Joker
     {
         private Random _rng = new Random();
 
-        public GrosMichel() : base("Gros Michel", 3, JokerTier.Common)
+        public GrosMichel() : base("Gros Michel", 3)
         {
             Description = "+15 mult. 1 out of 6 chance of breaking after hand.";
         }
@@ -68,7 +68,7 @@ public class Joker
     {
         private Random _rng = new Random();
 
-        public Misprint() : base("Misprint", 4, JokerTier.Common)
+        public Misprint() : base("Misprint", 4)
         {
             Description = "Randomly gain 1-20 mult";
         }
@@ -151,7 +151,7 @@ public class Joker
     }
     public class JollyJoker : Joker
     {
-        public JollyJoker() : base("Jolly Joker", 4, JokerTier.Common)
+        public JollyJoker() : base("Jolly Joker", 4)
         {
             Description = "+8 Mult when hand contains pair";
         }
@@ -167,7 +167,7 @@ public class Joker
 
     public class ZanyJoker : Joker
     {
-        public ZanyJoker() : base("Zanny Joker", 4, JokerTier.Common)
+        public ZanyJoker() : base("Zanny Joker", 4)
         {
             Description = "+12 Mult when hand contains Three of a Kind";
         }
@@ -186,7 +186,7 @@ public class Joker
 
     public class MadJoker : Joker
     {
-        public MadJoker() : base("Mad Joker", 4, JokerTier.Common)
+        public MadJoker() : base("Mad Joker", 4)
         {
             Description = "+10 Mult when hand contains Two Pair";
         }
@@ -210,7 +210,7 @@ public class Joker
 
     public class CrazyJoker : Joker
     {
-        public CrazyJoker() : base("Crazy Joker", 4, JokerTier.Common)
+        public CrazyJoker() : base("Crazy Joker", 4)
         {
             Description = "+12 Mult when hand contains Straight";
         }

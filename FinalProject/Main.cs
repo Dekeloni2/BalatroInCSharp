@@ -1,5 +1,3 @@
-
-using System;
 using System.Text;
 using FinalProject;
 
@@ -13,7 +11,7 @@ namespace BalatroGame
         static void Main(string[] args)
         {
             var controller = new GameController();
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
             controller.Run();
 
             

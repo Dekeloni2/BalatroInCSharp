@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BalatroGame
+﻿namespace BalatroGame
 {
     //Generates all cards
     public enum Suit

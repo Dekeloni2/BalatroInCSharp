@@ -1,8 +1,17 @@
 using BalatroGame;
+// ReSharper disable All
 
+
+//This is just to remove a lot of the warnings. Don't worry, a lot of the warnings are just saying that
+//the options might be nullable. There are no functions that are wasteful.
+#pragma warning disable CS8600
+#pragma warning disable CS8602
 #pragma warning disable CS0169, CS0649
+#pragma warning disable CS8604
 
 namespace FinalProject
+
+
 {
     public class Blind
     {
@@ -20,6 +29,29 @@ namespace FinalProject
 
     public class GameController
     {
+        public int Money
+        {
+            get => _money;
+            set => _money = value;
+        }
+
+        public int GetHandLevel(HandRank rank)
+        {
+            return _handLevels[rank];
+        }
+        
+        public void UseConsumableSlot(int slotIndex)
+        {
+            _consumables.UseConsumable(slotIndex, this);
+        }
+        
+        public void LevelUpHand(HandRank rank)
+        {
+            _handLevels[rank]++;
+            Console.WriteLine($"{rank} leveled up! New level: {_handLevels[rank]}");
+        }
+        
+
         private List<Blind> _blindSequence;
         private int _blindIndex;
         
@@ -33,11 +65,11 @@ namespace FinalProject
         private int _remainingHands;
 
         private ConsumableSlots _consumables = new ConsumableSlots(2);
-        private int _totalScore = 0;
+        private int _totalScore;
         private int _money = 400;
 
         private Blind _currentBlind;
-        private bool _blindDefeated = false;
+        private bool _blindDefeated;
         
         private List<Card> _discardPile = new List<Card>();
 
@@ -50,7 +82,6 @@ namespace FinalProject
         {
             _deck = new Deck(seed);
             _hand = new Hand();
-            
 
             _remainingDiscards = MaxDiscards;
             _remainingHands = MaxHands;
@@ -69,7 +100,7 @@ namespace FinalProject
             while (_remainingHands > 0)
             {
                 Console.WriteLine();
-                Console.WriteLine($"--- (Dekelatro) ---");
+                Console.WriteLine("--- (Dekelatro) ---");
                 
                 Console.WriteLine($"Current Blind: {_currentBlind.Name} — Target: {_currentBlind.TargetScore} points");
 
@@ -365,7 +396,7 @@ namespace FinalProject
         //Shop system
         private void OpenShop()
         {
-            
+
             Shop shop = new Shop(this);
 
             while (true)
@@ -383,8 +414,8 @@ namespace FinalProject
 
                 Console.WriteLine();
                 Console.WriteLine($"R. Reroll (${shop.RerollCost})");
-                Console.WriteLine($"X. View consumables");
-                Console.WriteLine($"J. View jokers");
+                Console.WriteLine("X. View consumables");
+                Console.WriteLine("J. View jokers");
                 Console.WriteLine("F. Enter the next blind");
 
                 string input = Console.ReadLine()?.Trim();
@@ -453,7 +484,6 @@ namespace FinalProject
                 }
             }
         }
-
         private void OpenJokerMenu()
         {
             while (true)
@@ -505,7 +535,7 @@ namespace FinalProject
 
                 if (int.TryParse(input, out int slot))
                 {
-                    if (_consumables.UseSlot(slot))
+                    if (_consumables.UseConsumable(slot, this))
                     {
                         Console.WriteLine("Consumable used!");
                         Console.WriteLine("Press Enter to continue.");
@@ -525,7 +555,9 @@ namespace FinalProject
             Console.WriteLine("Enter two numbers to swap (e.g. 0 4):");
 
             string line = Console.ReadLine()?.Trim();
+
             var indices = ParseIndices(line);
+
 
             if (indices == null || indices.Count != 2)
             {
@@ -548,8 +580,8 @@ namespace FinalProject
 
             Console.WriteLine("Jokers reordered!");
         }
-
-        private bool HandlePlayCardsFlow(List<int> parsed)
+        
+private bool HandlePlayCardsFlow(List<int> parsed)
 {
     parsed = parsed.Distinct().ToList();
 
@@ -575,15 +607,13 @@ namespace FinalProject
 
  
     HandRank rank = HandRank.HighCard;
-    int level = 0;
+    HandRank level = 0;
     int levelChips = 0;
     int levelMult = 0;
 
     if (chosenCards.Count == 5)
     {
-        rank = HandEvaluator.EvaluateFive(chosenCards).Rank;
-        level = HandLevelSystem.GetLevel(rank);
-        (levelChips, levelMult) = HandLevelValues.GetBonusForLevel(rank, level);
+        rank = HandEvaluator.EvaluateFive(chosenCards).Rank; ;
 
         handChips += levelChips;
         handMult += levelMult;
@@ -637,6 +667,7 @@ namespace FinalProject
 
     string confirm = Console.ReadLine()?.Trim();
 
+
     if (confirm.Equals("Y", StringComparison.OrdinalIgnoreCase))
     {
         _totalScore += finalScore;
@@ -648,9 +679,7 @@ namespace FinalProject
 
     return false;
 }
-
-
-        private List<int> ParseIndices(string input)
+private List<int>? ParseIndices(string input)
         {
             var parts = input.Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
             var parsed = new List<int>();
@@ -665,7 +694,18 @@ namespace FinalProject
 
             return parsed.Distinct().ToList();
         }
-        
+        private Dictionary<HandRank, int> _handLevels = new()
+        {
+            { HandRank.HighCard, 1 },
+            { HandRank.Pair, 1 },
+            { HandRank.TwoPair, 1 },
+            { HandRank.ThreeOfKind, 1 },
+            { HandRank.Straight, 1 },
+            { HandRank.Flush, 1 },
+            { HandRank.FullHouse, 1 },
+            { HandRank.FourOfKind, 1 },
+            { HandRank.StraightFlush, 1 }
+        };
         public bool PlayerAlreadyOwns(string itemName)
         {
             if (_jokers.Any(j => j.Name == itemName))

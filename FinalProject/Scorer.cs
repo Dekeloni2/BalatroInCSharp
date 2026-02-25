@@ -1,8 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+
 
 //Class for evaluation of hands played. This takes into account Jokers, Enchantments, Hand levels, Editions...
+
+using FinalProject;
+
 namespace BalatroGame
 {
     public class ChipsEvaluation
@@ -15,22 +16,22 @@ namespace BalatroGame
         public string Description { get; set; } = "";
     }
 
-    public static partial class Scorer
+    public static class Scorer
     {
         //Hand type bonus chips and mult. Upgradable using Planet cards.
         private static (int bonus, int mult) BonusAndMultiplierForRank(HandRank rank)
         {
             return rank switch
             {
-                HandRank.StraightFlush => (bonus: 100, mult: 6),
-                HandRank.FourOfKind    => (bonus: 80,  mult: 5),
-                HandRank.FullHouse     => (bonus: 60,  mult: 4),
-                HandRank.Flush         => (bonus: 50,  mult: 4),
-                HandRank.Straight      => (bonus: 30,  mult: 4), 
-                HandRank.ThreeOfKind   => (bonus: 25,  mult: 3),
-                HandRank.TwoPair       => (bonus: 18,  mult: 2),
-                HandRank.Pair          => (bonus: 10,  mult: 2),
-                HandRank.HighCard      => (bonus: 5,   mult: 1),
+                HandRank.StraightFlush => (100, 6),
+                HandRank.FourOfKind    => (80,  5),
+                HandRank.FullHouse     => (60,  4),
+                HandRank.Flush         => (50,  4),
+                HandRank.Straight      => (30,  4), 
+                HandRank.ThreeOfKind   => (25,  3),
+                HandRank.TwoPair       => (18,  2),
+                HandRank.Pair          => (10,  2),
+                HandRank.HighCard      => (5,   1),
                 _ => (0, 1)
             };
         }
@@ -38,7 +39,7 @@ namespace BalatroGame
         //Main function that returns all necessary information.
         public static ChipsEvaluation ChipsForPlayedCardsWithBonus(List<Card> chosen)
         {
-            if (chosen == null || chosen.Count == 0)
+            if (chosen.Count == 0)
                 return new ChipsEvaluation { ChipsFromCards = 0, BonusChips = 0, Multiplier = 1, Description = "No cards selected" };
 
             int CardValue(Card c) => (int)c.Rank;

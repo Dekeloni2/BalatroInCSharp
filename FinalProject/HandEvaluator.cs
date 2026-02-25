@@ -1,17 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using BalatroGame;
 
 #pragma warning disable CS0169, CS0649
+#pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
 
-namespace BalatroGame
+
+namespace FinalProject
 {
     public class BestHandResult
     {
         public HandRank Rank { get; set; }
         public List<Card> Cards { get; set; } = new();
-        public int[] Kickers { get; set; }
-        
+        public int[] Kickers { get; set; } = null!;
     }
     public static class HandEvaluator
     {
@@ -76,7 +75,7 @@ namespace BalatroGame
         public static string GetHandNameFlexible(List<Card> cards)
         {
             if (cards.Count == 5)
-                return HandEvaluator.EvaluateFive(cards).Rank.ToString();
+                return EvaluateFive(cards).Rank.ToString();
 
             var groups = cards.GroupBy(c => c.Rank).Select(g => g.Count()).OrderByDescending(x => x).ToList();
 
@@ -108,6 +107,7 @@ namespace BalatroGame
         {
             public static (int chips, int mult) GetBonusForLevel(HandRank rank, int level)
             {
+
                 return rank switch
                 {
                     HandRank.Pair          => (level * 10, level * 1),
