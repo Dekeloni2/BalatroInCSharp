@@ -16,9 +16,11 @@ public class Joker
     public string Description { get; set; } = "";
     public virtual string _Description { get; }
     public int Price { get; }
+    
+    public int SellValue { get; protected set; } = 1;
     public JokerTier Tier { get; }
 
-    public Joker(string name, int price, JokerTier tier = JokerTier.Common)
+    public Joker(string name, int price, JokerTier tier = JokerTier.Common, int sellValue = 0)
     {
         Name = name;
         Price = price;
@@ -49,7 +51,7 @@ public class Joker
     {
         private Random _rng = new Random();
 
-        public GrosMichel() : base("Gros Michel", 3)
+        public GrosMichel() : base("Gros Michel", 5, JokerTier.Common, 2)
         {
             Description = "+15 mult. 1 out of 6 chance of breaking after hand.";
         }
@@ -67,7 +69,7 @@ public class Joker
     }
     public class EvenSteven : Joker
     {
-        public EvenSteven() : base("Even Steven", 3)
+        public EvenSteven() : base("Even Steven", 3, JokerTier.Common, 2)
         {
             Description = "+4 mult for each even-ranked card (2, 4, 6, 8, 10).";
         }
@@ -95,7 +97,7 @@ public class Joker
     }
     public class OddTodd : Joker
     {
-        public OddTodd() : base("Odd Todd", 3)
+        public OddTodd() : base("Odd Todd", 3, JokerTier.Common, 2)
         {
             Description = "+31 chips for each odd-ranked card (A, 3, 5, 7, 9).";
         }
@@ -124,7 +126,7 @@ public class Joker
     }
     public class MysticSummit : Joker
     {
-        public MysticSummit() : base("Mystic Summit", 4)
+        public MysticSummit() : base("Mystic Summit", 4, JokerTier.Common, 2)
         {
             Description = "+15 mult if you have no discards remaining.";
         }
@@ -142,7 +144,7 @@ public class Joker
     {
         private Random _rng = new Random();
 
-        public Misprint() : base("Misprint", 4)
+        public Misprint() : base("Misprint", 4, JokerTier.Common, 2)
         {
             Description = "Randomly gain 1-20 mult";
         }
@@ -155,7 +157,7 @@ public class Joker
 
     public class Mask : Joker
     {
-        public Mask() : base("The Mask", 7, JokerTier.Uncommon)
+        public Mask() : base("The Mask", 7, JokerTier.Uncommon, 3)
         {
             Description = "+20 mult when hand DOES NOT contain face card.";
         }
@@ -176,7 +178,7 @@ public class Joker
     
     public class Fibonacci : Joker
     {
-        public Fibonacci() : base("Fibonacci", 7, JokerTier.Uncommon)
+        public Fibonacci() : base("Fibonacci", 7, JokerTier.Uncommon, 3)
         {
             Description = "+8 mult for each Ace, 2, 3, 5, or 8 played.";
         }
@@ -200,32 +202,9 @@ public class Joker
             return 0;
         }
     }
-    public class Bull : Joker
-    {
-        public Bull() : base("Bull", 5)
-        {
-            Description = ("+2 chips for each dollar you have."); // טקסט בסיסי
-        }
-
-        public override string _Description
-        {
-            get
-            {
-                int money = GameController.Instance.Money;
-                int chips = money * 2;
-                return $"+2 chips for each dollar you have. (Currently {chips})";
-            }
-        }
-
-        public override int GetBonusChips(List<Card> playedCards, int discardsUsed)
-        {
-            int money = GameController.Instance.Money;
-            return money * 2;
-        }
-    }
     public class PiMan : Joker
     {
-        public PiMan() : base("Pi Man", 10, JokerTier.Rare)
+        public PiMan() : base("Pi Man", 10, JokerTier.Rare, 4)
         {
             Description = "Raises chips to the power of 3.14 if played hand contains Ace, 3 and 4.";
         }
@@ -248,7 +227,7 @@ public class Joker
     }
     public class JollyJoker : Joker
     {
-        public JollyJoker() : base("Jolly Joker", 4)
+        public JollyJoker() : base("Jolly Joker", 4, JokerTier.Common, 2)
         {
             Description = "+8 Mult when hand contains pair";
         }
@@ -264,7 +243,7 @@ public class Joker
 
     public class ZanyJoker : Joker
     {
-        public ZanyJoker() : base("Zanny Joker", 4)
+        public ZanyJoker() : base("Zanny Joker", 4, JokerTier.Common, 2)
         {
             Description = "+12 Mult when hand contains Three of a Kind";
         }
@@ -283,7 +262,7 @@ public class Joker
 
     public class MadJoker : Joker
     {
-        public MadJoker() : base("Mad Joker", 4)
+        public MadJoker() : base("Mad Joker", 4, JokerTier.Common, 2)
         {
             Description = "+10 Mult when hand contains Two Pair";
         }
@@ -307,7 +286,7 @@ public class Joker
 
     public class CrazyJoker : Joker
     {
-        public CrazyJoker() : base("Crazy Joker", 4)
+        public CrazyJoker() : base("Crazy Joker", 4, JokerTier.Common, 2)
         {
             Description = "+12 Mult when hand contains Straight";
         }

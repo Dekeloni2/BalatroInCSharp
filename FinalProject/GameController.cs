@@ -53,7 +53,7 @@ namespace FinalProject
         
 
         private List<Blind> _blindSequence;
-        private int _blindIndex;
+        private int _blindNumber;
         
         private readonly Deck _deck;
         private readonly Hand _hand;
@@ -66,7 +66,7 @@ namespace FinalProject
 
         private ConsumableSlots _consumables = new ConsumableSlots(2);
         private int _totalScore;
-        private int _money = 400;
+        private int _money = 9999;
 
         private Blind _currentBlind;
         private bool _blindDefeated;
@@ -90,8 +90,8 @@ namespace FinalProject
 
             //Blind system
             _blindSequence = BuildBlindSequence();
-            _blindIndex = 0;
-            _currentBlind = _blindSequence[_blindIndex];
+            _blindNumber = 0;
+            _currentBlind = _blindSequence[_blindNumber];
         }
         
 
@@ -335,6 +335,8 @@ namespace FinalProject
                 _remainingDiscards = MaxDiscards;
                 _remainingHands = MaxHands;
                 
+                
+                //Specifically looks for Gros Michel and removes it if it does pass the break check
                 foreach (var joker in Jokers.ToList())
                 {
                     if (joker is Joker.GrosMichel gm)
@@ -385,6 +387,26 @@ namespace FinalProject
                 new Blind("Big Blind (Ante 2)", 1200, 7),
                 new Blind("Boss Blind (Ante 2)", 1500, 8),
                 
+                new Blind("Small Blind (Ante 3)",  2500, 3),
+                new Blind("Big Blind  (Ante 3)", 5000, 5),
+                new Blind("Boss Blind   (Ante 3)", 10000, 5),
+                
+                new Blind("Small Blind (Ante 4)", 10000, 3),
+                new Blind("Big Blind (Ante 4)", 15000, 5),
+                new Blind("Boss Blind (Ante 4)", 25000, 5),
+                
+                new Blind("Small Blind (Ante 5)", 25000, 3),
+                new Blind("Big Blind (Ante 5)", 37500, 5),
+                new Blind("Boss Blind (Ante 5)", 56000, 5),
+                
+                new Blind("Small Blind (Ante 6)", 50000, 3),
+                new Blind("Big Blind (Ante 6)", 75000, 5),
+                new Blind("Boss Blind (Ante 6)", 110000, 5),
+                
+                new Blind("Small Blind (Ante 7)", 100000, 3),
+                new Blind("Big Blind (Ante 7)", 115000, 5),
+                new Blind("Boss Blind (Ante 7)", 150000, 5)
+                
             };
         }
 
@@ -394,20 +416,20 @@ namespace FinalProject
         {
             if (_blindSequence == null || _blindSequence.Count == 0)
             {
-                Console.WriteLine("Blind sequence not initialized!");
+                Console.WriteLine("Blind not initialized!");
                 Environment.Exit(0);
             }
 
-            _blindIndex++;
+            _blindNumber++;
 
             //If all blinds have been defeated (Up to ante 8)
-            if (_blindIndex >= _blindSequence.Count)
+            if (_blindNumber >= _blindSequence.Count)
             {
                 Console.WriteLine("🎉 You beat all Blinds! You win!");
                 Environment.Exit(0);
             }
             
-            return _blindSequence[_blindIndex];
+            return _blindSequence[_blindNumber];
         }
 
 
@@ -506,7 +528,6 @@ namespace FinalProject
         {
             while (true)
             {
-                Console.Clear();
                 Console.WriteLine();
                 Console.WriteLine("=== JOKERS ===");
                 Console.WriteLine($"You have {_jokers.Count}/{MaxJokers} Jokers");
@@ -521,12 +542,19 @@ namespace FinalProject
                 Console.WriteLine();
                 Console.WriteLine("Options:");
                 Console.WriteLine("O - Reorder Jokers");
+                Console.WriteLine("S - Sell Jokers");
                 Console.WriteLine("F - Finish");
 
                 string input = Console.ReadLine()?.Trim();
 
                 if (input.Equals("F", StringComparison.OrdinalIgnoreCase))
                     return;
+                
+                if (input.Equals("S", StringComparison.OrdinalIgnoreCase))
+                {
+                    SellJokerMenu();
+                    continue;
+                }
 
                 if (input.Equals("O", StringComparison.OrdinalIgnoreCase))
                 {
@@ -535,6 +563,49 @@ namespace FinalProject
                 }
 
                 Console.WriteLine("Invalid option.");
+            }
+        }
+        public bool SellJoker(int index)
+        {
+            if (index < 0 || index >= _jokers.Count)
+            {
+                Console.WriteLine("Invalid joker index.");
+                return false;
+            }
+
+            Joker joker = _jokers[index];
+            int value = joker.SellValue;
+
+            _money += value;
+            _jokers.RemoveAt(index);
+
+            Console.WriteLine($"Sold {joker.Name} for ${value}.");
+            return true;
+        }
+        public void SellJokerMenu()
+        {
+            if (_jokers.Count == 0)
+            {
+                Console.WriteLine("You have no jokers to sell.");
+                return;
+            }
+
+            Console.WriteLine("Your Jokers:");
+            for (int i = 0; i < _jokers.Count; i++)
+            {
+                Console.WriteLine($"{i}: {_jokers[i].Name} (Sell: ${_jokers[i].SellValue})");
+            }
+
+            Console.WriteLine("Enter the index of the joker you want to sell:");
+            string input = Console.ReadLine();
+
+            if (int.TryParse(input, out int index))
+            {
+                SellJoker(index);
+            }
+            else
+            {
+                Console.WriteLine("Invalid input.");
             }
         }
         private void OpenConsumableMenu()
@@ -623,15 +694,35 @@ namespace FinalProject
                     Console.WriteLine("Added Gros Michel!");
                     break;
                 
-                case "Pi Man":
-                    _jokers.Add(new Joker.PiMan());
-                    Console.WriteLine("Added Pi Man!");
+                case "Odd Todd":
+                    _jokers.Add(new Joker.OddTodd());
+                    Console.WriteLine("Added Odd Todd!");
+                    break;
+                
+                case "Even Steven":
+                    _jokers.Add(new Joker.EvenSteven());
+                    Console.WriteLine("Added Even Steven!");
                     break;
                 
 
                 case "Mad Joker":
                     _jokers.Add(new Joker.MadJoker());
                     Console.WriteLine("Added Mad Joker!");
+                    break;
+                
+                case "Fibonacci":
+                    _jokers.Add(new Joker.Fibonacci());
+                    Console.WriteLine("Added Fibonacci!");
+                    break;
+                
+                case "Pi Man":
+                    _jokers.Add(new Joker.PiMan());
+                    Console.WriteLine("Added Pi Man!");
+                    break;
+                
+                case "Mystic Summit":
+                    _jokers.Add(new Joker.MysticSummit());
+                    Console.WriteLine("Added Mystic Summit!");
                     break;
                 
                 case "Crazy Joker":
@@ -664,6 +755,7 @@ namespace FinalProject
                     Console.WriteLine("Item purchased, but it is not a Joker.");
                     break;
             }
+            Console.WriteLine($"You now have {_jokers.Count} jokers.");
         }
         
 private bool HandlePlayCardsFlow(List<int> parsed)

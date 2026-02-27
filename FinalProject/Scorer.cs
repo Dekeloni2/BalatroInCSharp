@@ -104,8 +104,7 @@ namespace BalatroGame
             var groupsPartial = chosen.GroupBy(c => c.Rank).OrderByDescending(g => g.Count()).ToList();
             bool isFlushPartial = chosen.Select(c => c.Suit).Distinct().Count() == 1;
             bool isStraightPartial = chosen.Count >= 3 && HandEvaluatorIsStraightLike(chosen.Select(c => c.Rank).ToList());
-
-            // אם יש קבוצה (pair/trips/quads) — נסכם רק את הקלפים המשתתפים בקבוצה; בונוס/מכפיל נמוכים יותר
+            
             if (groupsPartial[0].Count() >= 2)
             {
                 var rankOfGroup = groupsPartial[0].Key;

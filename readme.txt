@@ -10,6 +10,8 @@ You are allowed to play a straight using an Ace
 
 List of poker hands can be seen here:
 https://balatrowiki.org/w/Poker_Hands
+Hand chips and mult are different in Dekelatro and are scaled
+much higher.
 
 Every time you beat 2 blinds, you face a "boss blind" that contains a special
 ability that makes it harder for you to beat it.
@@ -53,6 +55,10 @@ J - View jokers
 This lets you see purchased jokers and lets you reorganize
 and sell them
 
+X - View consumables
+This lets you see all consumable types that are
+currently in your inventory
+
 In the shop:
 
 R - Reroll
@@ -76,55 +82,5 @@ what each does by clicking J to view them.
 
 List of available jokers:
 
-
-Enchancements:
-
-Enchantments are special abilities that are applied
-to cards using tarot cards. For the sake of simplicity
-and UX, Enchantments are represented using emojis in game.
-
-Enchantments available:
-1. Mult:
-Gain +5 mult on played card
-2. Bonus
-Gain +40 chips on played card
-3. Wild
-Is considered as all suits. Cannot be debuffed by boss blinds
-4. Gold
-When blind is won, and this card is held in hand
-gain +3$
-5. Steel
-1.5x Mult when held in hand
-6. Lucky
-1/5 chance of +20 Mult. 1/20 of +20$ at the end of the round.
-7. Glass
-Card gives 2x. 1/4 chance of card being destroyed
-
-
-Tarot cards:
-Tarot cards are special cards that allow you to enchant
-your cards, in the blind or in packs. They can appear in
-the shop rotation or 1 of the 2 packs in teh shop.
-
-For the sake of UX, Tarot cards are represented by emojis
-
-
-Tarot cards:
-The Hermit 🧔‍♀️:
-Double your money (max of 20$)
-The Fool🧝:
-Duplicate your last used tarot or planet (cannot duplicate a fool)
-The Empress👸
-Apply Mult to 2 selected cards
-The Priestess 🧕:
-Gain 2 random planet cards
-Temperence 👴:
-Gain +X sell value of your jokers (up to 50$)
-Death 🧟:
-Write 2 (eg. 0 1) to copy the first card
-Emperor 🫅:
-Gain 2 random tarot cards
-Justice 🧑‍⚖️:
-Turn a selected card into glass
-Strength 💪:
-Increases rank of 2 selected cards by 1
+Planet cards:
+Planet cards level up the values for every poker hand.
