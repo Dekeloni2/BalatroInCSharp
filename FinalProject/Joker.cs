@@ -13,18 +13,19 @@ public enum JokerTier
 public class Joker
 {
     public string Name { get; }
-    public string Description { get; set; } = "";
-    public virtual string _Description { get; }
+    protected string _description;
+    public virtual string Description => _description;
     public int Price { get; }
-    
+
     public int SellValue { get; protected set; } = 1;
     public JokerTier Tier { get; }
 
-    public Joker(string name, int price, JokerTier tier = JokerTier.Common, int sellValue = 0)
+    protected Joker(string name, int price, JokerTier tier = JokerTier.Common, int sellValue = 0)
     {
         Name = name;
         Price = price;
         Tier = tier;
+        SellValue = sellValue;
     }
 
     public virtual int GetBonusChips(List<Card> playedCards, int discardsUsed)
@@ -42,9 +43,10 @@ public class Joker
     {
         return 0;
     }
+
     public virtual double GetBonusChipMultiplier(List<Card> playedCards, int discardsUsed)
     {
-        return 1.0; 
+        return 1.0;
     }
 
     public class GrosMichel : Joker
@@ -53,7 +55,7 @@ public class Joker
 
         public GrosMichel() : base("Gros Michel", 5, JokerTier.Common, 2)
         {
-            Description = "+15 mult. 1 out of 6 chance of breaking after hand.";
+            _description = "+15 mult. 1 out of 6 chance of breaking after hand.";
         }
 
 
@@ -67,11 +69,12 @@ public class Joker
             return _rng.Next(6) == 0;
         }
     }
+
     public class EvenSteven : Joker
     {
         public EvenSteven() : base("Even Steven", 3, JokerTier.Common, 2)
         {
-            Description = "+4 mult for each even-ranked card (2, 4, 6, 8, 10).";
+            _description = "+4 mult for each even-ranked card (2, 4, 6, 8, 10).";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
@@ -86,6 +89,7 @@ public class Joker
 
             return bonus;
         }
+
         private bool IsEven(Card card)
         {
             return card.Rank == Rank.Two ||
@@ -95,11 +99,12 @@ public class Joker
                    card.Rank == Rank.Ten;
         }
     }
+
     public class OddTodd : Joker
     {
         public OddTodd() : base("Odd Todd", 3, JokerTier.Common, 2)
         {
-            Description = "+31 chips for each odd-ranked card (A, 3, 5, 7, 9).";
+            _description = "+31 chips for each odd-ranked card (A, 3, 5, 7, 9).";
         }
 
         public override int GetBonusChips(List<Card> playedCards, int discardsUsed)
@@ -124,11 +129,12 @@ public class Joker
                    card.Rank == Rank.Nine;
         }
     }
+
     public class MysticSummit : Joker
     {
         public MysticSummit() : base("Mystic Summit", 4, JokerTier.Common, 2)
         {
-            Description = "+15 mult if you have no discards remaining.";
+            _description = "+15 mult if you have no discards remaining.";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
@@ -140,13 +146,14 @@ public class Joker
             return 0;
         }
     }
+
     public class Misprint : Joker
     {
         private Random _rng = new Random();
 
         public Misprint() : base("Misprint", 4, JokerTier.Common, 2)
         {
-            Description = "Randomly gain 1-20 mult";
+            _description = "Randomly gain 1-20 mult";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
@@ -159,7 +166,7 @@ public class Joker
     {
         public Mask() : base("The Mask", 7, JokerTier.Uncommon, 3)
         {
-            Description = "+20 mult when hand DOES NOT contain face card.";
+            _description = "+20 mult when hand DOES NOT contain face card.";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
@@ -175,12 +182,12 @@ public class Joker
             return 20;
         }
     }
-    
+
     public class Fibonacci : Joker
     {
         public Fibonacci() : base("Fibonacci", 7, JokerTier.Uncommon, 3)
         {
-            Description = "+8 mult for each Ace, 2, 3, 5, or 8 played.";
+            _description = "+8 mult for each Ace, 2, 3, 5, or 8 played.";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
@@ -202,34 +209,36 @@ public class Joker
             return 0;
         }
     }
+
     public class PiMan : Joker
     {
         public PiMan() : base("Pi Man", 10, JokerTier.Rare, 4)
         {
-            Description = "Raises chips to the power of 3.14 if played hand contains Ace, 3 and 4.";
+            _description = "Raises chips to the power of 3.14 if played hand contains Ace, 3 and 4.";
         }
 
         public override int GetBonusChips(List<Card> playedCards, int discardsUsed)
         {
-            bool hasAce   = playedCards.Any(c => c.Rank == Rank.Ace);
+            bool hasAce = playedCards.Any(c => c.Rank == Rank.Ace);
             bool hasThree = playedCards.Any(c => c.Rank == Rank.Three);
-            bool hasFour  = playedCards.Any(c => c.Rank == Rank.Four);
+            bool hasFour = playedCards.Any(c => c.Rank == Rank.Four);
 
             if (!(hasAce && hasThree && hasFour))
                 return 0;
-            
+
             int baseChips = playedCards.Sum(c => c.ChipValue);
-            
+
             double powered = Math.Pow(baseChips, 3.14);
-            
+
             return (int)(powered - baseChips);
         }
     }
+
     public class JollyJoker : Joker
     {
         public JollyJoker() : base("Jolly Joker", 4, JokerTier.Common, 2)
         {
-            Description = "+8 Mult when hand contains pair";
+            _description = "+8 Mult when hand contains pair";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
@@ -245,7 +254,7 @@ public class Joker
     {
         public ZanyJoker() : base("Zanny Joker", 4, JokerTier.Common, 2)
         {
-            Description = "+12 Mult when hand contains Three of a Kind";
+            _description = "+12 Mult when hand contains Three of a Kind";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
@@ -264,7 +273,7 @@ public class Joker
     {
         public MadJoker() : base("Mad Joker", 4, JokerTier.Common, 2)
         {
-            Description = "+10 Mult when hand contains Two Pair";
+            _description = "+10 Mult when hand contains Two Pair";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
@@ -283,12 +292,11 @@ public class Joker
             return isTwoPair ? 10 : 0;
         }
     }
-
     public class CrazyJoker : Joker
     {
         public CrazyJoker() : base("Crazy Joker", 4, JokerTier.Common, 2)
         {
-            Description = "+12 Mult when hand contains Straight";
+            _description = "+12 Mult when hand contains Straight";
         }
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
@@ -318,6 +326,71 @@ public class Joker
                 return 10;
 
             return 0;
+        }
+    }
+    public class Brainstorm : Joker
+    {
+        public Brainstorm() : base("Brainstorm", price: 10, JokerTier.Rare, 4)
+        {
+            SellValue = 4;
+        }
+
+        private Joker GetTargetJoker()
+        {
+            if (GameController.Instance == null)
+                return null;
+
+            var jokers = GameController.Instance.Jokers;
+
+            if (jokers == null || jokers.Count == 0)
+                return null;
+
+            if (jokers[0] == this)
+            {
+                if (jokers.Count > 1)
+                    return jokers[1];
+
+                return null;
+            }
+
+            return jokers[0];
+        }
+
+        public override void ApplyEffect(List<Card> playedCards, List<Card> hand)
+        {
+            var target = GetTargetJoker();
+            target?.ApplyEffect(playedCards, hand);
+        }
+
+        public override int GetBonusChips(List<Card> playedCards, int discardsUsed)
+        {
+            var target = GetTargetJoker();
+            return target?.GetBonusChips(playedCards, discardsUsed) ?? 0;
+        }
+
+        public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
+        {
+            var target = GetTargetJoker();
+            return target?.GetBonusMult(playedCards, discardsUsed) ?? 0;
+        }
+
+        public override double GetBonusChipMultiplier(List<Card> playedCards, int discardsUsed)
+        {
+            var target = GetTargetJoker();
+            return target?.GetBonusChipMultiplier(playedCards, discardsUsed) ?? 1.0;
+        }
+
+        public override string Description
+        {
+            get
+            {
+                var target = GetTargetJoker();
+
+                if (target == null)
+                    return "Copy the effect of the Joker in index 0. (No valid target)";
+
+                return $"Copy the effect of the Joker in index 0. (Currently copying: {target.Name})";
+            }
         }
     }
 }

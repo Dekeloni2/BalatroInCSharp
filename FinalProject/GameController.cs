@@ -710,6 +710,11 @@ namespace FinalProject
                     Console.WriteLine("Added Mad Joker!");
                     break;
                 
+                case "Brainstorm":
+                    _jokers.Add(new Joker.Brainstorm());
+                    Console.WriteLine("Added Brainstorm!");
+                    break;
+                
                 case "Fibonacci":
                     _jokers.Add(new Joker.Fibonacci());
                     Console.WriteLine("Added Fibonacci!");

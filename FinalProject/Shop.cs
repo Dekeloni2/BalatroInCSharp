@@ -49,7 +49,7 @@ namespace FinalProject
                 Consumable = null
             };
         }
-        // ⭐ פונקציה שמייצרת Planet Card כ‑ShopItem
+        //Creates planet cards as shop items
         private ShopItem GeneratePlanetItem()
         {
             var planets = new List<PlanetCard>
@@ -137,6 +137,7 @@ namespace FinalProject
                 JokerTier.Rare => new List<Joker>
                 {
                     new Joker.PiMan(),
+                    new Joker.Brainstorm()
                 },
 
                 _ => new List<Joker>()
