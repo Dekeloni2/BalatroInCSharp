@@ -30,8 +30,6 @@
     {
         public Suit Suit { get; }
         public Rank Rank { get; }
-        public int BaseMultiplier { get; set; } = 1;
-
         
         public List<string> Enchantments { get; } = new List<string>();
 

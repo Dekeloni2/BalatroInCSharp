@@ -1,4 +1,4 @@
-using BalatroGame;
+
 // ReSharper disable All
 
 
@@ -9,25 +9,10 @@ using BalatroGame;
 #pragma warning disable CS0169, CS0649
 #pragma warning disable CS8604
 
-namespace FinalProject
+namespace FinalProject;
+using BalatroGame;
 
-
-{
-    public class Blind
-    {
-        public string Name { get; }
-        public int TargetScore { get; }
-        public int Reward { get; }
-
-        public Blind(string name, int targetScore, int reward)
-        {
-            Name = name;
-            TargetScore = targetScore;
-            Reward = reward;
-        }
-    }
-
-    public class GameController
+public class GameController
     {
         public int Money
         {
@@ -51,15 +36,27 @@ namespace FinalProject
             Console.WriteLine($"{rank} leveled up! New level: {_handLevels[rank]}");
         }
         
-
         private List<Blind> _blindSequence;
         private int _blindNumber;
         
         private readonly Deck _deck;
         private readonly Hand _hand;
 
-        private const int MaxDiscards = 3;
+        public int DiscardCounter => _discardCounter;
+
+        private int _discardCounter = 0;
+        public void IncrementDiscardCounter()
+        {
+            _discardCounter++;
+        }
+
+        public void ResetDiscardCounter()
+        {
+            _discardCounter = 0;
+        }
+        public static int MaxDiscards = 3;
         private const int MaxHands = 4;
+        private bool _firstDiscardUsed = false;
 
         public int _remainingDiscards;
         public int _remainingHands;
@@ -67,6 +64,7 @@ namespace FinalProject
         private ConsumableSlots _consumables = new ConsumableSlots(2);
         private int _totalScore;
         private int _money = 9999;
+        public bool firstReroll = false;
 
         private Blind _currentBlind;
         private bool _blindDefeated;
@@ -105,13 +103,7 @@ namespace FinalProject
                 Console.WriteLine("--- (Dekelatro) ---");
                 
                 Console.WriteLine($"Current Blind: {_currentBlind.Name} — Target: {_currentBlind.TargetScore} points");
-
-
-                if (_deck.Count < 0)
-                {
-                    Console.WriteLine("Your deck is empty — you have been defeated!");
-                    return;
-                }
+                
 
                 _hand.DrawInitialHand(_deck);
 
@@ -123,8 +115,7 @@ namespace FinalProject
                 while (!handPlayed)
                 {
                     Console.WriteLine();
-                    Console.WriteLine(
-                        $"Discards left: {_remainingDiscards} | Hands left: {_remainingHands} | Score: {_totalScore} | Money: {_money}$");
+                    Console.WriteLine($"Discards left: {_remainingDiscards} | Hands left: {_remainingHands} | Score: {_totalScore} | Money: {_money}$");
                     Console.WriteLine($"Cards left in deck: {_deck.Count}");
                     Console.WriteLine("Controls:");
                     Console.WriteLine("- Type numbers (e.g. 0 2 4) to PLAY cards");
@@ -196,7 +187,6 @@ namespace FinalProject
 
                         string discardInput = Console.ReadLine()?.Trim();
 
-                        // Cancel discard
                         if (discardInput.Equals("F", StringComparison.OrdinalIgnoreCase))
                         {
                             Console.WriteLine("Discard cancelled.");
@@ -218,9 +208,29 @@ namespace FinalProject
                         }
 
                         var discarded = _hand.GetCardsAtIndices(discardIndices);
-                        _discardPile.AddRange(discarded);
+                        
+                        bool isFirstDiscard = !_firstDiscardUsed;
+                        if (isFirstDiscard && discarded.Count == 1)
+                        {
+                            foreach (var joker in Jokers)
+                            {
+                                if (joker is Joker.TradingCard tc)
+                                {
+                                    tc.OnFirstDiscardTradingCard(this, discarded[0]);
+                                }
+                            }
+                        }
+                        foreach (var joker in Jokers)
+                        {
+                            if (joker is Joker.VoidPortal vp)
+                                vp.OnDiscard(this, discarded);
+                        }
 
+                        _firstDiscardUsed = true;
+                        
+                        _discardPile.AddRange(discarded);
                         _hand.ReplaceSelectedIndices(discardIndices, _deck);
+
                         Console.WriteLine("Cards discarded.");
                         _hand.ShowHand();
 
@@ -232,7 +242,7 @@ namespace FinalProject
                     var playIndices = PraseToIndexes(line);
                     if (playIndices != null)
                     {
-                        bool confirmed = HandlePlayCardsFlow(playIndices);
+                        bool confirmed = ScoreCalculations(playIndices);
 
                         if (confirmed)
                         {
@@ -266,6 +276,33 @@ namespace FinalProject
             Console.WriteLine("Final hand:");
             _hand.ShowHand();
             Console.WriteLine($"Cards left in deck: {_deck.Count}");
+        }
+        
+        public void TransformDiscardedCards(List<Card> discarded)
+        {
+            foreach (var oldCard in discarded)
+            {
+                Card newCard = new Card(oldCard.Suit, GetRandomRank());
+                
+                int handIndex = _hand.Cards.IndexOf(oldCard);
+                if (handIndex != -1)
+                    _hand.Cards[handIndex] = newCard;
+                
+                int discardIndex = _discardPile.IndexOf(oldCard);
+                if (discardIndex != -1)
+                    _discardPile[discardIndex] = newCard;
+                
+                int deckIndex = _deck.Cards.IndexOf(oldCard);
+                if (deckIndex != -1)
+                    _deck.Cards[deckIndex] = newCard;
+            }
+        }
+
+        private Random _rng = new Random();
+        private Rank GetRandomRank()
+        {
+            Rank[] values = (Rank[])Enum.GetValues(typeof(Rank));
+            return values[_rng.Next(values.Length)];
         }
         
         private void ShowDeck()
@@ -316,15 +353,28 @@ namespace FinalProject
         
         private void CheckBlindStatus()
         {
+            Console.WriteLine("CheckBlindStatus CALLED");
             if (_totalScore >= _currentBlind.TargetScore)
             {
                 bool grosMichelFound = false;
                 bool grosMichelBroke = false;
+                _firstDiscardUsed = false;
                 Console.WriteLine();
                 Console.WriteLine($"{_currentBlind.Name} DEFEATED");
 
                 _money += _currentBlind.Reward;
                 Console.WriteLine($"{_currentBlind.Reward}$ OBTAINED");
+                
+                // Golden Joker payout
+                // Golden Joker payout
+                foreach (var joker in Jokers)
+                {
+                    if (joker is Joker.GoldenJoker)
+                    {
+                        AddMoney(4);
+                        Console.WriteLine("+4$ from Golden Joker");
+                    }
+                }
 
                 Console.WriteLine("Dealer reshuffeling cards...");
 
@@ -334,9 +384,8 @@ namespace FinalProject
 
                 _remainingDiscards = MaxDiscards;
                 _remainingHands = MaxHands;
-                
-                
-                //Specifically looks for Gros Michel and removes it if it does pass the break check
+
+                // Gros Michel break check
                 foreach (var joker in Jokers.ToList())
                 {
                     if (joker is Joker.GrosMichel gm)
@@ -351,18 +400,19 @@ namespace FinalProject
                         }
                     }
                 }
+
                 if (grosMichelFound && !grosMichelBroke)
                 {
                     Console.WriteLine("Your Gros Michel didn't go extinct.");
                 }
-                
+
                 OpenShop();
 
                 _blindDefeated = false;
                 _currentBlind = GetNextBlind();
                 _totalScore = 0;
                 return;
-                }
+            }
 
             //Losing
             if (_remainingHands == 0)
@@ -380,12 +430,12 @@ namespace FinalProject
             return new List<Blind>
             {
                 new Blind("Small Blind (Ante 1)", 300, 3),
-                new Blind("Big Blind (Ante 1)", 450, 4),
-                new Blind("Boss Blind (Ante 1)", 600, 6),
+                new Blind("Big Blind (Ante 1)", 450, 5),
+                new Blind("Boss Blind (Ante 1)", 600, 5),
 
-                new Blind("Small Blind (Ante 2)", 900, 6),
-                new Blind("Big Blind (Ante 2)", 1200, 7),
-                new Blind("Boss Blind (Ante 2)", 1500, 8),
+                new Blind("Small Blind (Ante 2)", 900, 3),
+                new Blind("Big Blind (Ante 2)", 1200, 5),
+                new Blind("Boss Blind (Ante 2)", 1500, 5),
                 
                 new Blind("Small Blind (Ante 3)",  2500, 3),
                 new Blind("Big Blind  (Ante 3)", 5000, 5),
@@ -409,7 +459,32 @@ namespace FinalProject
                 
             };
         }
+        public void AddMoney(int amount)
+        {
+            _money += amount;
+        }
+        
+        public void DestroyCard(Card card)
+        {
+            if (_hand.Cards.Contains(card))
+                _hand.Cards.Remove(card);
+            
+            if (_discardPile.Contains(card))
+                _discardPile.Remove(card);
+            
+            if (_deck.Cards.Contains(card))
+                _deck.Cards.Remove(card);
 
+            Console.WriteLine($"Card {card} was destroyed.");
+        }
+        public void NotifyPlanetUsed()
+        {
+            foreach (var joker in _jokers)
+            {
+                if (joker is Joker.Constellation c)
+                    c.OnPlanetUsed();
+            }
+        }
         
         //Protects the code
         private Blind GetNextBlind()
@@ -441,6 +516,7 @@ namespace FinalProject
 
             while (true)
             {
+                bool firstReroll = false;
                 Console.WriteLine();
                 Console.WriteLine("=== SHOP ===");
                 Console.WriteLine($"Money: {_money}");
@@ -477,15 +553,22 @@ namespace FinalProject
                 }
                 if (input.Equals("R", StringComparison.OrdinalIgnoreCase))
                 {
+                    bool hasChaos = Jokers.Any(j => j is Joker.ChaosTheClown);
+                    if (!firstReroll && hasChaos)
+                    {
+                        shop.Reroll();
+                        firstReroll = true;
+                        continue;
+                    }
                     if (_money < shop.RerollCost)
                     {
                         Console.WriteLine("Not enough money for reroll.");
                         continue;
                     }
-                    
 
                     _money -= shop.RerollCost;
                     shop.Reroll();
+                    firstReroll = true;
                     continue;
                 }
 
@@ -689,9 +772,24 @@ namespace FinalProject
 
             switch (itemName)
             {
+                case "Constellation":
+                    _jokers.Add(new Joker.Constellation());
+                    Console.WriteLine("Added Constellation!");
+                    break;
+                
                 case "Gros Michel":
                     _jokers.Add(new Joker.GrosMichel());
                     Console.WriteLine("Added Gros Michel!");
+                    break;
+                
+                case "Golden Joker":
+                    _jokers.Add(new Joker.GoldenJoker());
+                    Console.WriteLine("Added Golden Joker!");
+                    break;
+                
+                case "Trading Card":
+                    _jokers.Add(new Joker.TradingCard());
+                    Console.WriteLine("Added Trading Card!");
                     break;
                 
                 case "Odd Todd":
@@ -710,10 +808,6 @@ namespace FinalProject
                     Console.WriteLine("Added Mad Joker!");
                     break;
                 
-                case "Brainstorm":
-                    _jokers.Add(new Joker.Brainstorm());
-                    Console.WriteLine("Added Brainstorm!");
-                    break;
                 
                 case "Fibonacci":
                     _jokers.Add(new Joker.Fibonacci());
@@ -741,7 +835,7 @@ namespace FinalProject
                     break;
                 
 
-                case "Mask":
+                case "The Mask":
                     _jokers.Add(new Joker.Mask());
                     Console.WriteLine("Added Mask!");
                     break;
@@ -749,6 +843,11 @@ namespace FinalProject
                 case "Zany Joker":
                     _jokers.Add(new Joker.ZanyJoker());
                     Console.WriteLine("Added Zanny Joker!");
+                    break;
+                
+                case "Void Portal":
+                    _jokers.Add(new Joker.VoidPortal());
+                    Console.WriteLine("Added Void Portal!");
                     break;
 
                 case "Jolly Joker":
@@ -763,8 +862,9 @@ namespace FinalProject
             Console.WriteLine($"You now have {_jokers.Count} jokers.");
         }
         
-private bool HandlePlayCardsFlow(List<int> parsed)
+private bool ScoreCalculations(List<int> parsed)
 {
+    //First checks if the player chose less or more than 5 cards
     parsed = parsed.Distinct().ToList();
 
     if (parsed.Count < 1 || parsed.Count > 5)
@@ -773,6 +873,7 @@ private bool HandlePlayCardsFlow(List<int> parsed)
         return false;
     }
 
+    
     if (parsed.Any(i => i < 0 || i > 7))
     {
         Console.WriteLine("Numbers must be between 0 and 7.");
@@ -853,11 +954,9 @@ private bool HandlePlayCardsFlow(List<int> parsed)
     if (confirm.Equals("Y", StringComparison.OrdinalIgnoreCase))
     {
         _totalScore += finalScore;
+        CheckBlindStatus();
         return true;
     }
-
-    foreach (var card in chosenCards)
-        card.Enchantments.Clear();
 
     return false;
 }
@@ -889,4 +988,3 @@ private List<int>? PraseToIndexes(string input)
             { HandRank.StraightFlush, 1 }
         };
     }
-}

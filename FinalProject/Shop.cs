@@ -72,7 +72,7 @@ namespace FinalProject
                 Consumable = chosen
             };
         }
-        public void GenerateNewItems()
+        private void GenerateNewItems()
         {
             Items = new List<ShopItem>();
 
@@ -125,36 +125,31 @@ namespace FinalProject
                     new Joker.JollyJoker(),
                     new Joker.MadJoker(),
                     new Joker.CrazyJoker(),
-                    new Joker.ZanyJoker()
+                    new Joker.ZanyJoker(),
+                    new Joker.OddTodd(),
+                    new Joker.MysticSummit(),
+                    new Joker.ChaosTheClown(),
+                    new Joker.GoldenJoker()
                 },
 
                 JokerTier.Uncommon => new List<Joker>
                 {
                     new Joker.Mask(),
-                    new Joker.Fibonacci()
+                    new Joker.Fibonacci(),
+                    new Joker.TradingCard(),
+                    new Joker.Constellation()
                 },
 
                 JokerTier.Rare => new List<Joker>
                 {
                     new Joker.PiMan(),
-                    new Joker.Brainstorm()
+                    new Joker.VoidPortal()
                 },
 
                 _ => new List<Joker>()
             };
 
             return pool[_rng.Next(pool.Count)];
-        }
-
-        private ConsoleColor TierColor(JokerTier tier)
-        {
-            return tier switch
-            {
-                JokerTier.Common => ConsoleColor.White,
-                JokerTier.Uncommon => ConsoleColor.Green,
-                JokerTier.Rare => ConsoleColor.Red,
-                _ => ConsoleColor.Gray
-            };
         }
     }
 }

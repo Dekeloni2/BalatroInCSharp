@@ -1,4 +1,4 @@
-public class Blind
+public partial class Blind
 {
     public string Name { get; }
     public int TargetScore { get; }

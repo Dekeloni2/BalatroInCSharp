@@ -1,5 +1,5 @@
+namespace FinalProject;
 using BalatroGame;
-using FinalProject;
 
 
 //Each joker is a separate class. This comes with their name, ability description, price and tier.
@@ -49,6 +49,30 @@ public class Joker
         return 1.0;
     }
 
+    public class Constellation : Joker
+    {
+        private double _multBonus = 1.0;
+
+        public Constellation() : base("Constellation", 8, JokerTier.Uncommon, 3)
+        {
+            _description = $"When using a Planet, this joker gains +0.1x ({_multBonus:0.0}).";
+        }
+
+        public void OnPlanetUsed()
+        {
+            _multBonus += 0.1;
+            Console.WriteLine($"Constellation glows brighter! New multiplier: {_multBonus:0.0}x");
+        }
+
+        public override double GetBonusChipMultiplier(List<Card> playedCards, int discardsUsed)
+        {
+            return _multBonus;
+        }
+
+        public override int GetBonusChips(List<Card> playedCards, int discardsUsed) => 0;
+        public override int GetBonusMult(List<Card> playedCards, int discardsUsed) => 0;
+    }
+    
     public class GrosMichel : Joker
     {
         private Random _rng = new Random();
@@ -68,6 +92,33 @@ public class Joker
         {
             return _rng.Next(6) == 0;
         }
+    }
+
+    public class TradingCard : Joker
+    {
+        public TradingCard() : base("Trading Card", 5, JokerTier.Uncommon, 2)
+        {
+            _description = "If your first discard is a single card, destroy it and gain $3.";
+        }
+
+        public void OnFirstDiscardTradingCard(GameController game, Card card)
+        {
+            game.DestroyCard(card);
+
+            game.AddMoney(3);
+
+            Console.WriteLine("Trading card activated! +3$");
+        }
+    }
+
+    public class ChaosTheClown : Joker
+    {
+        public ChaosTheClown() : base("Chaos the Clown", 4, JokerTier.Common, 2)
+        {
+            _description = "Your first reroll costs $0.";
+        }
+
+        public bool FirstRerollIsFree => true;
     }
 
     public class EvenSteven : Joker
@@ -139,8 +190,10 @@ public class Joker
 
         public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
         {
-            // אם אין לשחקן יותר discards → תן 15 mult
-            if (GameController.Instance._remainingDiscards == 0)
+
+            int remaining = GameController.MaxDiscards - discardsUsed;
+
+            if (remaining == 0)
                 return 15;
 
             return 0;
@@ -206,7 +259,7 @@ public class Joker
                 }
             }
 
-            return 0;
+            return fibbonaciBonus;
         }
     }
 
@@ -250,9 +303,21 @@ public class Joker
         }
     }
 
+    public class GoldenJoker : Joker
+    {
+        public GoldenJoker() : base("Golden Joker", 4, JokerTier.Common, 2)
+        {
+            _description = "Gain $4 after winning a Blind.";
+        }
+
+        public override int GetBonusChips(List<Card> playedCards, int discardsUsed) => 0;
+        public override int GetBonusMult(List<Card> playedCards, int discardsUsed) => 0;
+        public override double GetBonusChipMultiplier(List<Card> playedCards, int discardsUsed) => 1.0;
+    }
+
     public class ZanyJoker : Joker
     {
-        public ZanyJoker() : base("Zanny Joker", 4, JokerTier.Common, 2)
+        public ZanyJoker() : base("Zany Joker", 4, JokerTier.Common, 2)
         {
             _description = "+12 Mult when hand contains Three of a Kind";
         }
@@ -292,6 +357,7 @@ public class Joker
             return isTwoPair ? 10 : 0;
         }
     }
+
     public class CrazyJoker : Joker
     {
         public CrazyJoker() : base("Crazy Joker", 4, JokerTier.Common, 2)
@@ -328,68 +394,26 @@ public class Joker
             return 0;
         }
     }
-    public class Brainstorm : Joker
+
+    public class VoidPortal : Joker
     {
-        public Brainstorm() : base("Brainstorm", price: 10, JokerTier.Rare, 4)
+        public VoidPortal() : base("Void Portal", 7, JokerTier.Rare, 3)
         {
-            SellValue = 4;
+            _description = "Every 3rd discard transforms the discarded cards into random cards of the same suit.";
         }
 
-        private Joker GetTargetJoker()
+        public void OnDiscard(GameController game, List<Card> discarded)
         {
-            if (GameController.Instance == null)
-                return null;
+            if (discarded == null || discarded.Count == 0)
+                return;
 
-            var jokers = GameController.Instance.Jokers;
+            game.IncrementDiscardCounter();
 
-            if (jokers == null || jokers.Count == 0)
-                return null;
-
-            if (jokers[0] == this)
+            if (game.DiscardCounter == 3)
             {
-                if (jokers.Count > 1)
-                    return jokers[1];
-
-                return null;
-            }
-
-            return jokers[0];
-        }
-
-        public override void ApplyEffect(List<Card> playedCards, List<Card> hand)
-        {
-            var target = GetTargetJoker();
-            target?.ApplyEffect(playedCards, hand);
-        }
-
-        public override int GetBonusChips(List<Card> playedCards, int discardsUsed)
-        {
-            var target = GetTargetJoker();
-            return target?.GetBonusChips(playedCards, discardsUsed) ?? 0;
-        }
-
-        public override int GetBonusMult(List<Card> playedCards, int discardsUsed)
-        {
-            var target = GetTargetJoker();
-            return target?.GetBonusMult(playedCards, discardsUsed) ?? 0;
-        }
-
-        public override double GetBonusChipMultiplier(List<Card> playedCards, int discardsUsed)
-        {
-            var target = GetTargetJoker();
-            return target?.GetBonusChipMultiplier(playedCards, discardsUsed) ?? 1.0;
-        }
-
-        public override string Description
-        {
-            get
-            {
-                var target = GetTargetJoker();
-
-                if (target == null)
-                    return "Copy the effect of the Joker in index 0. (No valid target)";
-
-                return $"Copy the effect of the Joker in index 0. (Currently copying: {target.Name})";
+                game.TransformDiscardedCards(discarded);
+                game.ResetDiscardCounter();
+                Console.WriteLine("Void Portal warps your discarded cards!");
             }
         }
     }

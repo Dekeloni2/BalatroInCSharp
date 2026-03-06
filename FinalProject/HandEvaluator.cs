@@ -10,7 +10,8 @@ namespace FinalProject
     {
         public HandRank Rank { get; set; }
         public List<Card> Cards { get; set; } = new();
-        public int[] Kickers { get; set; } = null!;
+        public int[] RankValues { get; set; } = null!;
+        
     }
     public static class HandEvaluator
     {
@@ -23,15 +24,32 @@ namespace FinalProject
             var groups = five.GroupBy(c => c.Rank).OrderByDescending(g => g.Count()).ThenByDescending(g => (int)g.Key).ToList();
             bool isStraight = IsStraight(five.Select(c => c.Rank).ToList());
 
-            if (isStraight && isFlush) return new BestHandResult { Rank = HandRank.StraightFlush, Cards = five, Kickers = new[] { ranks.First() } };
-            if (groups[0].Count() == 4) return new BestHandResult { Rank = HandRank.FourOfKind, Cards = five, Kickers = new[] { (int)groups[0].Key, (int)groups[1].Key } };
-            if (groups[0].Count() == 3 && groups[1].Count() == 2) return new BestHandResult { Rank = HandRank.FullHouse, Cards = five, Kickers = new[] { (int)groups[0].Key, (int)groups[1].Key } };
-            if (isFlush) return new BestHandResult { Rank = HandRank.Flush, Cards = five, Kickers = ranks.ToArray() };
-            if (isStraight) return new BestHandResult { Rank = HandRank.Straight, Cards = five, Kickers = new[] { ranks.First() } };
-            if (groups[0].Count() == 3) return new BestHandResult { Rank = HandRank.ThreeOfKind, Cards = five, Kickers = new[] { (int)groups[0].Key }.Concat(ranks.Where(r => r != (int)groups[0].Key)).ToArray() };
-            if (groups[0].Count() == 2 && groups[1].Count() == 2) return new BestHandResult { Rank = HandRank.TwoPair, Cards = five, Kickers = new[] { (int)groups[0].Key, (int)groups[1].Key, (int)groups[2].Key } };
-            if (groups[0].Count() == 2) return new BestHandResult { Rank = HandRank.Pair, Cards = five, Kickers = new[] { (int)groups[0].Key }.Concat(ranks.Where(r => r != (int)groups[0].Key)).ToArray() };
-            return new BestHandResult { Rank = HandRank.HighCard, Cards = five, Kickers = ranks.ToArray() };
+            if (isStraight && isFlush) 
+                return new BestHandResult 
+                    { Rank = HandRank.StraightFlush, Cards = five, RankValues = new[] { ranks.First() } };
+            if (groups[0].Count() == 4) 
+                return new BestHandResult 
+                    { Rank = HandRank.FourOfKind, Cards = five, RankValues = new[] { (int)groups[0].Key, (int)groups[1].Key } };
+            if (groups[0].Count() == 3 && groups[1].Count() == 2) 
+                return new BestHandResult 
+                    { Rank = HandRank.FullHouse, Cards = five, RankValues = new[] { (int)groups[0].Key, (int)groups[1].Key } };
+            if (isFlush) 
+                return new BestHandResult 
+                    { Rank = HandRank.Flush, Cards = five, RankValues = ranks.ToArray() };
+            if (isStraight) 
+                return new BestHandResult 
+                    { Rank = HandRank.Straight, Cards = five, RankValues = new[] { ranks.First() } };
+            if (groups[0].Count() == 3) 
+                return new BestHandResult 
+                    { Rank = HandRank.ThreeOfKind, Cards = five, RankValues = new[] { (int)groups[0].Key }.Concat(ranks.Where(r => r != (int)groups[0].Key)).ToArray() };
+            if (groups[0].Count() == 2 && groups[1].Count() == 2) 
+                return new BestHandResult 
+                    { Rank = HandRank.TwoPair, Cards = five, RankValues = new[] { (int)groups[0].Key, (int)groups[1].Key, (int)groups[2].Key } };
+            if (groups[0].Count() == 2) 
+                return new BestHandResult 
+                    { Rank = HandRank.Pair, Cards = five, RankValues = new[] { (int)groups[0].Key }.Concat(ranks.Where(r => r != (int)groups[0].Key)).ToArray() }; 
+            return new BestHandResult 
+                { Rank = HandRank.HighCard, Cards = five, RankValues = ranks.ToArray() };
         }
         public static (int handChips, int handMult) GetHandValueFlexible(List<Card> cards)
         {
@@ -85,41 +103,6 @@ namespace FinalProject
             if (groups[0] == 2) return "Pair";
 
             return "High Card";
-        }
-        public static class HandLevelSystem
-        {
-            private static Dictionary<HandRank, int> _levels = new Dictionary<HandRank, int>();
-
-            static HandLevelSystem()
-            {
-                foreach (HandRank rank in Enum.GetValues(typeof(HandRank)))
-                    _levels[rank] = 0;
-            }
-
-            public static int GetLevel(HandRank rank) => _levels[rank];
-
-            public static void LevelUp(HandRank rank)
-            {
-                _levels[rank]++;
-            }
-        }
-        public static class HandLevelValues
-        {
-            public static (int chips, int mult) GetBonusForLevel(HandRank rank, int level)
-            {
-
-                return rank switch
-                {
-                    HandRank.Pair          => (level * 10, level * 1),
-                    HandRank.TwoPair       => (level * 12, level * 1),
-                    HandRank.ThreeOfKind   => (level * 15, level * 1),
-                    HandRank.Straight      => (level * 20, level * 1),
-                    HandRank.Flush         => (level * 22, level * 1),
-                    HandRank.FullHouse     => (level * 25, level * 2),
-                    HandRank.FourOfKind    => (level * 30, level * 2),
-                    HandRank.StraightFlush => (level * 40, level * 3)
-                };
-            }
         }
     }
 }
