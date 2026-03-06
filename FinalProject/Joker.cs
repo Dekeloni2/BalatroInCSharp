@@ -55,7 +55,7 @@ public class Joker
 
         public Constellation() : base("Constellation", 8, JokerTier.Uncommon, 3)
         {
-            _description = $"When using a Planet, this joker gains +0.1x ({_multBonus:0.0}).";
+            _description = $"When using a Planet, this joker gains +0.1x ({_multBonus:0.0}x).";
         }
 
         public void OnPlanetUsed()
@@ -75,7 +75,7 @@ public class Joker
     
     public class GrosMichel : Joker
     {
-        private Random _rng = new Random();
+        private readonly Random _rng = new Random();
 
         public GrosMichel() : base("Gros Michel", 5, JokerTier.Common, 2)
         {

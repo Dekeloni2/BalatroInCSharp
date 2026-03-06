@@ -13,9 +13,6 @@ https://balatrowiki.org/w/Poker_Hands
 Hand chips and mult are different in Dekelatro and are scaled
 much higher.
 
-Every time you beat 2 blinds, you face a "boss blind" that contains a special
-ability that makes it harder for you to beat it.
-
 Winning 3 blinds increases the blind size by 1.5x. This is called "ante"
 
 The game has playability up to 7 antes.
