@@ -353,7 +353,6 @@ public class GameController
         
         private void CheckBlindStatus()
         {
-            Console.WriteLine("CheckBlindStatus CALLED");
             if (_totalScore >= _currentBlind.TargetScore)
             {
                 bool grosMichelFound = false;
@@ -894,6 +893,7 @@ private bool ScoreCalculations(List<int> parsed)
     int levelChips = 0;
     int levelMult = 0;
 
+    //Calls hand evaluator to find out the best rank for the picked cards
     if (chosenCards.Count == 5)
     {
         rank = HandEvaluator.EvaluateFive(chosenCards).Rank; ;
@@ -902,6 +902,7 @@ private bool ScoreCalculations(List<int> parsed)
         handMult += levelMult;
     }
 
+    //Also checks for Jokers
     foreach (var joker in _jokers)
         joker.ApplyEffect(chosenCards, _hand.Cards);
 
@@ -914,6 +915,8 @@ private bool ScoreCalculations(List<int> parsed)
     int jokerBonusChips = 0;
     int jokerBonusMult = 0;
 
+    
+    //Joker calcs
     foreach (var joker in _jokers)
     {
         jokerBonusChips += joker.GetBonusChips(chosenCards, discardsUsed);
@@ -935,6 +938,8 @@ private bool ScoreCalculations(List<int> parsed)
 
     int displayMult = chipsEval.Multiplier + handMult;
 
+    
+    //Displays the entire hand and joker calculations
     Console.WriteLine();
     Console.WriteLine("=== Hand Breakdown ===");
     Console.WriteLine();
@@ -960,6 +965,7 @@ private bool ScoreCalculations(List<int> parsed)
 
     return false;
 }
+
 private List<int>? PraseToIndexes(string input)
         {
             var parts = input.Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
