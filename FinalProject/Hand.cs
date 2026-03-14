@@ -4,14 +4,15 @@ namespace BalatroGame
     {
         public List<Card> Cards { get; private set; } = new List<Card>();
 
+        //Draws up to 8 cards
         public void DrawInitialHand(Deck deck)
         {
             Cards = deck.DrawMany(8);
         }
         //When discard or drawing cards
-        public int ReplaceSelectedIndices(List<int> indices, Deck deck)
+        public int ReplaceSelectedIndexes(List<int> indexes, Deck deck)
         {
-            var distinct = indices.Distinct().ToList();
+            var distinct = indexes.Distinct().ToList();
             distinct.Sort();
             int replaced = 0;
             foreach (int idx in distinct)
@@ -23,6 +24,7 @@ namespace BalatroGame
             return replaced;
         }
 
+        //Prints out the drawn hand
         public void ShowHand()
         {
             for (int i = 0; i < Cards.Count; i++)
@@ -52,11 +54,11 @@ namespace BalatroGame
                 .ThenByDescending(c => (int)c.Rank)
                 .ToList();
         }
-        public List<Card> GetCardsAtIndices(List<int> indices)
+        public List<Card> GetCardsAtIndexes(List<int> indexes)
         {
             var result = new List<Card>();
 
-            foreach (int i in indices)
+            foreach (int i in indexes)
             {
                 if (i >= 0 && i < Cards.Count)
                     result.Add(Cards[i]);

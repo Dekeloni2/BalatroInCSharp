@@ -63,7 +63,7 @@ public class GameController
 
         private ConsumableSlots _consumables = new ConsumableSlots(2);
         private int _totalScore;
-        private int _money = 9999;
+        private int _money = 4;
         public bool firstReroll = false;
 
         private Blind _currentBlind;
@@ -193,21 +193,21 @@ public class GameController
                             continue;
                         }
 
-                        var discardIndices = PraseToIndexes(discardInput);
+                        var discardIndexes = PraseToIndexes(discardInput);
 
-                        if (discardIndices == null)
+                        if (discardIndexes == null)
                         {
                             Console.WriteLine("Invalid input.");
                             continue;
                         }
 
-                        if (_deck.Count < discardIndices.Count)
+                        if (_deck.Count < discardIndexes.Count)
                         {
                             Console.WriteLine("Not enough cards in deck.");
                             continue;
                         }
 
-                        var discarded = _hand.GetCardsAtIndices(discardIndices);
+                        var discarded = _hand.GetCardsAtIndexes(discardIndexes);
                         
                         bool isFirstDiscard = !_firstDiscardUsed;
                         if (isFirstDiscard && discarded.Count == 1)
@@ -229,7 +229,7 @@ public class GameController
                         _firstDiscardUsed = true;
                         
                         _discardPile.AddRange(discarded);
-                        _hand.ReplaceSelectedIndices(discardIndices, _deck);
+                        _hand.ReplaceSelectedIndexes(discardIndexes, _deck);
 
                         Console.WriteLine("Cards discarded.");
                         _hand.ShowHand();
@@ -239,10 +239,10 @@ public class GameController
                     }
 
                     // PLAY CARDS
-                    var playIndices = PraseToIndexes(line);
-                    if (playIndices != null)
+                    var playIndexes = PraseToIndexes(line);
+                    if (playIndexes != null)
                     {
-                        bool confirmed = ScoreCalculations(playIndices);
+                        bool confirmed = ScoreCalculations(playIndexes);
 
                         if (confirmed)
                         {
@@ -728,21 +728,21 @@ public class GameController
 
             string line = Console.ReadLine()?.Trim();
 
-            var indices = PraseToIndexes(line);
+            var indexes = PraseToIndexes(line);
 
 
-            if (indices == null || indices.Count != 2)
+            if (indexes == null || indexes.Count != 2)
             {
                 Console.WriteLine("Invalid input.");
                 return;
             }
 
-            int a = indices[0];
-            int b = indices[1];
+            int a = indexes[0];
+            int b = indexes[1];
 
             if (a < 0 || a >= _jokers.Count || b < 0 || b >= _jokers.Count)
             {
-                Console.WriteLine("Invalid indices.");
+                Console.WriteLine("Invalid indexes.");
                 return;
             }
 
@@ -881,7 +881,7 @@ private bool ScoreCalculations(List<int> parsed)
     }
 
     //Chosen cards
-    List<Card> chosenCards = _hand.GetCardsAtIndices(parsed);
+    List<Card> chosenCards = _hand.GetCardsAtIndexes(parsed);
 
     Console.WriteLine();
 

@@ -82,6 +82,7 @@ public class ConsumableSlots
         
         _slots[index]!.Use(game);
         
+        //Soley for Constellation
         game.NotifyPlanetUsed();
 
         
